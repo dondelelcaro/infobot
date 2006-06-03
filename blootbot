@@ -27,6 +27,8 @@ BEGIN {
 
     $bot_pid		= $$;
 
+    unshift @INC,"$bot_src_dir","$bot_src_dir/Modules";
+
     require "$bot_src_dir/logger.pl";
     require "$bot_src_dir/core.pl";
     require "$bot_src_dir/modules.pl";
