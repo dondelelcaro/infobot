@@ -254,6 +254,8 @@ sub seenFlushOld {
 	return if ($_[0] eq "2");	# defer.
     }
 
+    # NO SEEN FLUSHING!!!
+    return;
     # is this global-only?
     return unless (&IsChanConf("seen") > 0);
     return unless (&IsChanConf("seenFlushInterval") > 0);
@@ -557,12 +559,15 @@ sub seenFlush {
 
     if ($param{'DBType'} =~ /^(mysql|pgsql|sqlite(2)?)$/i) {
 	foreach $nick (keys %seencache) {
+	    my $lastcount = &sqlSelect('seen','messagecount',{nick=>lc $seencache{$nick}{'nick'}}) || 0;
 	    my $retval = &sqlReplace("seen", {
 			nick	=> lc $seencache{$nick}{'nick'},
 			time	=> $seencache{$nick}{'time'},
 			host	=> $seencache{$nick}{'host'},
 			channel	=> $seencache{$nick}{'chan'},
 			message	=> $seencache{$nick}{'msg'},
+			messagecount => $lastcount+$seencache{$nick}{'msgcount'},
+						
 	    } );
 
 	    delete $seencache{$nick};
@@ -687,7 +692,11 @@ sub ircCheck {
 	    &joinNextChan();
 	}
 
-	# TODO: fix on_disconnect()
+    my @join = &getJoinChans(1);
+    if (scalar @join) {
+	&FIXME('ircCheck: found channels to join! ' . join(',',@join));
+	&joinNextChan();
+    }
 
 	if (time() - $msgtime > 3600) {
 	    # TODO: shouldn't we use cache{connect} somewhere?
@@ -703,14 +712,23 @@ sub ircCheck {
 		$cache{connect} = time();
 	    }
 	}
+    }
 
-	if (grep /^\s*$/, keys %channels) {
-	    &WARN('ircCheck: we have a NULL chan in hash channels? removing!');
-	    if (!exists $channels{''}) {
-		&DEBUG('ircCheck: this should never happen!');
-	    }
+       if (grep /^\s*$/, keys %channels) {
+           &WARN('ircCheck: we have a NULL chan in hash channels? removing!');
+           if (!exists $channels{''}) {
+               &DEBUG('ircCheck: this should never happen!');
+           }
+    if ($ident !~ /^\Q$param{ircNick}\E$/) {
+	# this does not work unfortunately.
+	&WARN("ircCheck: ident($ident) != param{ircNick}($param{ircNick}).");
 
-	    delete $channels{''};
+	# this check is misleading... perhaps we should do a notify.
+	if (! &IsNickInAnyChan( $param{ircNick} ) ) {
+	    &DEBUG("$param{ircNick} not in use... changing!");
+	    &nick( $param{ircNick} );
+	} else {
+	    &WARN("$param{ircNick} is still in use...");
 	}
     }
 
