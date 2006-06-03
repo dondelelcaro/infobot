@@ -36,7 +36,12 @@ sub Parse {
     }
 
     if ($::msgType ne "private") {
-	$chan = $::chan;
+	if ($who =~ /^#/){
+	     &::msg($who, "I'm not noticing the entire channel. /msg me instead");
+	     return;
+	}
+	&::notice($who, "I'm not noticing the entire channel. /msg me instead");
+	return;
     }
 
     if (defined $what and $what =~ s/^($::mask{chan})\s*//) {
