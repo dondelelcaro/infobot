@@ -32,6 +32,7 @@ sub doQuestion {
     my $questionWord	= "";
 
     if (!$addressed) {
+	return ''; #never respond if we're not addressed
 	return '' unless ($finalQMark);
 	return '' unless &IsChanConf("minVolunteerLength") > 0;
 	return '' if (length $query < &::getChanConf('minVolunteerLength'));
@@ -189,9 +190,9 @@ sub factoidArgs {
 #    my $t = &timeget();
     my ($first) = split(/\s+/, $str);
 
-    # ignore split to commands [dumb commands vs. factoids] (editing commands?)
+    # ignore split to commands [dumb commands vs. factoids]
     return undef if $str =~ /\s+\=\~\s+s[\#\/\:]/;
-    my @list = &searchTable("factoids", "factoid_key", "factoid_key", "^cmd: $first ");
+    my @list = &searchTable("factoids", "factoid_key", "factoid_key", "^CMD: $first ");
 #    my $delta_time = &timedelta($t);
 #    &DEBUG("factArgs: delta_time = $delta_time s");
 #    &DEBUG("factArgs: list => ".scalar(@list) );
@@ -258,7 +259,7 @@ sub factoidArgs {
 
 	foreach ( split(',', $vars) ) {
 	    my $val = $vals[$i];
-#	    &DEBUG("val => $val");
+	    &DEBUG("val => $val");
 
 	    if (!defined $val) {
 		&status("factArgs: vals[$i] == undef; not SARing '$_' for '$str'");
@@ -268,9 +269,9 @@ sub factoidArgs {
 	    my $done = 0;
 	    my $old = $result;
 	    while (1) {
-#		&DEBUG("Q: result => $result (1before)");
+		&DEBUG("Q: result => $result (1before)");
 		$result = &substVars($result,1);
-#		&DEBUG("Q: result => $result (1after)");
+		&DEBUG("Q: result => $result (1after)");
 
 		last if ($old eq $result);
 		$old = $result;
@@ -287,7 +288,8 @@ sub factoidArgs {
 	    $i++;
 	}
 
-	# rest of nasty hack to get partial &getReply() functionality.
+	# nasty hack to get partial &getReply() functionality.
+ 	$result = &SARit($result);
 	$result =~ s/^\s*<action>\s*(.*)/\cAACTION $1\cA/i;
 	$result =~ s/^\s*<reply>\s*//i;
 
