@@ -19,6 +19,11 @@ sub Kernel {
 	return;
     }
 
+    if ($::who =~ /^\#/) {
+	&::msg($::who, "No, I won't harass the entire channel."); 
+	return undef;
+    }
+
     foreach $line (@now) {
 	$line =~ s/The latest //;
 	$line =~ s/version //;
