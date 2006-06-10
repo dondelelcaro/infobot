@@ -453,7 +453,7 @@ sub convert {
 	return;
     }
 
-    &Units::convertUnits($from, $to);
+    &NewUnits::convertUnits($from, $to);
 
     return;
 }
@@ -852,7 +852,7 @@ sub nullski {
 &addCmdHook('bzfquery', ('CODEREF' => 'BZFlag::query', 'Identifier' => 'BZFlag', 'Cmdstats' => 'BZFlag', 'Forker' => 1, 'Module' => 'BZFlag') );
 &addCmdHook('chan(stats|info)', ('CODEREF' => 'chaninfo', ) );
 &addCmdHook('cmd(stats|info)', ('CODEREF' => 'cmdstats', ) );
-&addCmdHook('convert', ('CODEREF' => 'convert', 'Forker' => 1, 'Identifier' => 'Units', 'Help' => 'convert') );
+&addCmdHook('convert', ('CODEREF' => 'convert', 'Forker' => 1, 'Identifier' => 'NewUnits', 'Help' => 'convert') );
 &addCmdHook('(cookie|random)', ('CODEREF' => 'cookie', 'Forker' => 1, 'Identifier' => 'Factoids') );
 &addCmdHook('countdown', ('CODEREF' => 'countdown', 'Module' => 'countdown', 'Identifier' => 'countdown', 'Cmdstats' => 'countdown') );
 &addCmdHook('countrystats', ('CODEREF' => 'countryStats') );
