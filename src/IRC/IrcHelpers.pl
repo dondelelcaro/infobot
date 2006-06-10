@@ -107,6 +107,13 @@ sub hookMsg {
 		$addrchar  = 1;
 		$addressed = 1;
 	    }
+	    elsif ($message =~ s/^\Q~\E//){
+		@chans = &getNickInChans('apt');
+		if (not grep $chan, @chans){
+		    $addrchar = 1;
+		    $addressed = 1;
+		}
+	    }
 	}
 
 	if ($message =~ /^($mask{nick})([\;\:\>\, ]+) */) {
