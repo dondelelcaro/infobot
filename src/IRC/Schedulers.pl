@@ -719,6 +719,7 @@ sub ircCheck {
            if (!exists $channels{''}) {
                &DEBUG('ircCheck: this should never happen!');
            }
+      }
     if ($ident !~ /^\Q$param{ircNick}\E$/) {
 	# this does not work unfortunately.
 	&WARN("ircCheck: ident($ident) != param{ircNick}($param{ircNick}).");
