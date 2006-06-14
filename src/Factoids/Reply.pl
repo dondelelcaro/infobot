@@ -125,13 +125,7 @@ sub getReply {
 		$reply = "$lhs $mhs $result";
 	    }
 
-	    if ($reply =~ s/^\Q$who\E is/you are/i) {
-		# fix the person.
-	    } else {
-		if ($reply =~ /^you are / or $reply =~ / you are /) {
-		    return if ($addressed);
-		}
-	    }
+	    $reply =~ s/^\Q$who\E is/you are/i) {
 	}
     }
 

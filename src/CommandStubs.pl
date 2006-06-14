@@ -772,7 +772,7 @@ sub textstats_main {
 	    }
 	}
 
-	my $topstr = '';
+	$topstr = '';
 	if (scalar @top) {
 	    $topstr = '.  Top '.scalar(@top).': '.join(', ', @top);
 	}
