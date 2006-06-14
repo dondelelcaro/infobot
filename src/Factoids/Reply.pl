@@ -125,7 +125,7 @@ sub getReply {
 		$reply = "$lhs $mhs $result";
 	    }
 
-	    $reply =~ s/^\Q$who\E is/you are/i);
+	    $reply =~ s/^\Q$who\E is/you are/i;
 	}
     }
 
