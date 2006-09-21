@@ -116,7 +116,7 @@ sub hookMsg {
 	    }
 	}
 
-	if ($message =~ /^($mask{nick})([\;\:\>\, ]+) */) {
+	if (!$addressed and $message =~ /^($mask{nick})([\;\:\>\, ]+) */) {
 	    my $newmessage = $';
 	    if ($1 =~ /^\Q$mynick\E$/i) {
 		$message   = $newmessage;
