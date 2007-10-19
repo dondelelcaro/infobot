@@ -24,18 +24,16 @@ my $protocol	= 'http';
 # format: "alias=real".
 my %dists	= (
 	'unstable'	=> 'sid',
-	'testing'	=> 'etch',
-	'stable'	=> 'sarge',
+	'testing'	=> 'lenny',
+	'stable'	=> 'etch',
         'experimental'  => 'experimental',
-	'oldstable'	=> 'woody',
+	'oldstable'	=> 'sarge',
 	'incoming'	=> 'incoming',
-	 woody          => 'woody',
 );
 
 my %archived_dists = (
-#    woody  => 'woody',
+    woody  => 'woody',
     potato => 'potato',
-#    oldstable => 'woody',
     hamm   => 'hamm',
     buzz   => 'buzz',
     bo     => 'bo',
