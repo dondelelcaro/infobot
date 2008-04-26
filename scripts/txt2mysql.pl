@@ -19,7 +19,7 @@ my $txtfile = shift;
 open(IN,$txtfile) or die "error: cannot open txtfile '$txtfile'.\n";
 
 # read the bot config file.
-&loadConfig("files/blootbot.config");
+&loadConfig("files/infobot.config");
 &loadDBModules();
 &openDB($param{'DBName'}, $param{'SQLUser'}, $param{'SQLPass'});
 
@@ -55,3 +55,5 @@ close IN;
 
 print "Done.\n";
 &closeDB();
+
+# vim:ts=4:sw=4:expandtab:tw=80

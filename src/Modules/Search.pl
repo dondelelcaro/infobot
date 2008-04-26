@@ -17,12 +17,12 @@ sub Search {
 
     $type =~ s/s$//;	# nice work-around.
 
-    if ($type eq "value") {
+    if ($type eq 'value') {
 	# search by value.
-	@list = &::searchTable("factoids", "factoid_key", "factoid_value", $str);
+	@list = &::searchTable('factoids', 'factoid_key', 'factoid_value', $str);
     } else {
 	# search by key.
-	@list = &::searchTable("factoids", "factoid_key", "factoid_key", $str);
+	@list = &::searchTable('factoids', 'factoid_key', 'factoid_key', $str);
     }
 
     @list=grep(!/\#DEL\#$/,@list) if (scalar(@list) > $maxshow);
@@ -35,3 +35,5 @@ sub Search {
 }
 
 1;
+
+# vim:ts=4:sw=4:expandtab:tw=80

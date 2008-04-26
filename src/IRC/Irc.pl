@@ -26,6 +26,9 @@ $nickserv	= 0;
 # It's probably closer to 510, but let's be cautious until we calculate it extensively.
 my $maxlinelen	= 490;
 
+# Keep track of last time we displayed Chans: to avoid spam in logs
+my $lastChansTime = 0;
+
 sub ircloop {
     my $error	= 0;
     my $lastrun = 0;
@@ -178,7 +181,7 @@ sub irc {
 
     # works? needs to actually do something
     # should likely listen on a tcp port instead
-    #$irc->addfh(STDIN, \&on_stdin, "r");
+    #$irc->addfh(STDIN, \&on_stdin, 'r');
 
     &status("starting main loop");
 
@@ -193,7 +196,7 @@ sub rawout {
     my ($buf) = @_;
     $buf =~ s/\n//gi;
 
-    # slow down a bit if traffic is "high".
+    # slow down a bit if traffic is 'high'.
     # need to take into account time of last message sent.
     if ($last{buflen} > 256 and length($buf) > 256) {
 	sleep 1;
@@ -208,8 +211,14 @@ sub say {
     my ($msg) = @_;
     my $mynick = $conn->nick();
     if (!defined $msg) {
-	$msg ||= "NULL";
+	$msg ||= 'NULL';
 	&WARN("say: msg == $msg.");
+	return;
+    }
+
+    if (&getChanConf('silent', $talkchannel) and not
+      (&IsFlag("s") and &verifyUser($who,$nuh{lc $who}))) {
+	&DEBUG("say: silent in $talkchannel, not saying $msg");
 	return;
     }
 
@@ -226,7 +235,7 @@ sub say {
 
     return unless (&whatInterface() =~ /IRC/);
 
-    $msg = "zero" if ($msg =~ /^0+$/);
+    $msg = 'zero' if ($msg =~ /^0+$/);
 
     my $t = time();
 
@@ -234,8 +243,8 @@ sub say {
 	$pubcount++;
 	$pubsize += length $msg;
 
-	my $i = &getChanConfDefault("sendPublicLimitLines", 3, $chan);
-	my $j = &getChanConfDefault("sendPublicLimitBytes", 1000, $chan);
+	my $i = &getChanConfDefault('sendPublicLimitLines', 3, $chan);
+	my $j = &getChanConfDefault('sendPublicLimitBytes', 1000, $chan);
 
 	if ( ($pubcount % $i) == 0 and $pubcount) {
 	    sleep 1;
@@ -261,8 +270,15 @@ sub msg {
     }
 
     if (!defined $msg) {
-	$msg ||= "NULL";
+	$msg ||= 'NULL';
 	&WARN("msg: msg == $msg.");
+	return;
+    }
+
+    # some say() end up here (eg +help)
+    if (&getChanConf('silent', $nick) and not
+       (&IsFlag("s") and &verifyUser($who,$nuh{lc $who}))) {
+	&DEBUG("msg: silent in $nick, not saying $msg");
 	return;
     }
 
@@ -275,8 +291,8 @@ sub msg {
 	$msgcount++;
 	$msgsize += length $msg;
 
-	my $i = &getChanConfDefault("sendPrivateLimitLines", 3, $chan);
-	my $j = &getChanConfDefault("sendPrivateLimitBytes", 1000, $chan);
+	my $i = &getChanConfDefault('sendPrivateLimitLines', 3, $chan);
+	my $j = &getChanConfDefault('sendPrivateLimitBytes', 1000, $chan);
 	if ( ($msgcount % $i) == 0 and $msgcount) {
 	    sleep 1;
 	} elsif ($msgsize > $j) {
@@ -299,6 +315,12 @@ sub action {
     my ($target, $txt) = @_;
     if (!defined $txt) {
 	&WARN("action: txt == NULL.");
+	return;
+    }
+
+    if (&getChanConf('silent', $target) and not
+       (&IsFlag("s") and &verifyUser($who,$nuh{lc $who}))) {
+	&DEBUG("action: silent in $target, not doing $txt");
 	return;
     }
 
@@ -327,8 +349,8 @@ sub notice {
 	$notcount++;
 	$notsize += length $txt;
 
-	my $i = &getChanConfDefault("sendNoticeLimitLines", 3, $chan);
-	my $j = &getChanConfDefault("sendNoticeLimitBytes", 1000, $chan);
+	my $i = &getChanConfDefault('sendNoticeLimitLines', 3, $chan);
+	my $j = &getChanConfDefault('sendNoticeLimitBytes', 1000, $chan);
 
 	if ( ($notcount % $i) == 0 and $notcount) {
 	    sleep 1;
@@ -464,8 +486,8 @@ sub dcc_close {
 
 sub joinchan {
     my ($chan, $key) = @_;
-    $key ||= &getChanConf("chankey", $chan);
-    $key ||= "";
+    $key ||= &getChanConf('chankey', $chan);
+    $key ||= '';
 
     # forgot for about 2 years to implement channel keys when moving
     # over to Net::IRC...
@@ -490,7 +512,7 @@ sub part {
     my $chan;
 
     foreach $chan (@_) {
-	next if ($chan eq "");
+	next if ($chan eq '');
 	$chan =~ tr/A-Z/a-z/;	# lowercase.
 
 	if ($chan !~ /^$mask{chan}$/) {
@@ -526,24 +548,24 @@ sub mode {
 
 sub op {
     my ($chan, @who) = @_;
-    my $os	= "o" x scalar(@who);
+    my $os	= 'o' x scalar(@who);
 
     &mode($chan, "+$os @who");
 }
 
 sub deop {
     my ($chan, @who) = @_;
-    my $os = "o" x scalar(@who);
+    my $os = 'o' x scalar(@who);
 
     &mode($chan, "-$os ".@who);
 }
 
 sub kick {
     my ($nick,$chan,$msg) = @_;
-    my (@chans) = ($chan eq "") ? (keys %channels) : lc($chan);
+    my (@chans) = ($chan eq '') ? (keys %channels) : lc($chan);
     my $mynick = $conn->nick();
 
-    if ($chan ne "" and &validChan($chan) == 0) {
+    if ($chan ne '' and &validChan($chan) == 0) {
 	&ERROR("kick: invalid channel $chan.");
 	return;
     }
@@ -700,7 +722,7 @@ sub joinNextChan {
     }
 
     # chanserv check: global channels, in case we missed one.
-    foreach ( &ChanConfList("chanServ_ops") ) {
+    foreach ( &ChanConfList('chanServ_ops') ) {
 	&chanServCheck($_);
     }
 }
@@ -820,11 +842,20 @@ sub clearIRCVars {
 }
 
 sub getJoinChans {
-    my($show)	= @_;
+    # $show should contain the min number of seconds between display
+    # of the Chans: status line. Use 0 to disable
+    my $show = shift;
 
     my @in;
     my @skip;
     my @join;
+
+    # Display "Chans:" only if more than $show seconds since last display
+    if (time() - $lastChansTime > $show) {
+    	$lastChansTime = time();
+    } else {
+    	$show = 0; # Don't display since < 15min since last
+    }
 
     # can't join any if not connected
     return @join if (!$conn);
@@ -832,14 +863,14 @@ sub getJoinChans {
     my $nick = $conn->nick();
 
     foreach (keys %chanconf) {
-	next if ($_ eq "_default");
+	next if ($_ eq '_default');
 
 	my $skip = 0;
 	my $val = $chanconf{$_}{autojoin};
 
 	if (defined $val) {
-	    $skip++ if ($val eq "0");
-	    if ($val eq "1") {
+	    $skip++ if ($val eq '0');
+	    if ($val eq '1') {
 		# convert old +autojoin to autojoin <nick>
 		$val = lc $nick;
 		$chanconf{$_}{autojoin} = $val;
@@ -861,8 +892,8 @@ sub getJoinChans {
     }
 
     my $str;
-    #$str .= ' in:' . join(',', sort @in) if scalar @in;
-    #$str .= ' skip:' . join(',', sort @skip) if scalar @skip;
+    $str .= ' in:' . join(',', sort @in) if scalar @in;
+    $str .= ' skip:' . join(',', sort @skip) if scalar @skip;
     $str .= ' join:' . join(',', sort @join) if scalar @join;
 
     &status("Chans: ($nick)$str") if ($show);
@@ -896,7 +927,7 @@ sub closeDCC {
 sub joinfloodCheck {
     my($who,$chan,$userhost) = @_;
 
-    return unless (&IsChanConf("joinfloodCheck") > 0);
+    return unless (&IsChanConf('joinfloodCheck') > 0);
 
     if (exists $netsplit{lc $who}) {	# netsplit join.
 	&DEBUG("joinfloodCheck: $who was in netsplit; not checking.");
@@ -960,3 +991,5 @@ sub getHostMask {
 }
 
 1;
+
+# vim:ts=4:sw=4:expandtab:tw=80

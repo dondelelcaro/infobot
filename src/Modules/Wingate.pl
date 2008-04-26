@@ -12,7 +12,7 @@ use strict;
 my $select = IO::Select->new;
 
 sub Wingates {
-    my $file = "$::blootbot_base_dir/$::param{'ircUser'}.wingate";
+    my $file = "$::infobot_base_dir/$::param{'ircUser'}.wingate";
     my @hosts;
 
     open(IN, $file);
@@ -73,7 +73,7 @@ sub Wingate {
 	    &::status("Wingate: RUNNING ON $host BY $::who.");
 
 	    if (&::IsChanConf('wingateBan') > 0) {
-		&::ban("*!*\@$host", "");
+		&::ban("*!*\@$host", '');
 	    }
 
 	    my $reason	= &::getChanConf('wingateKick');
@@ -96,3 +96,5 @@ sub Wingate {
 }
 
 1;
+
+# vim:ts=4:sw=4:expandtab:tw=80

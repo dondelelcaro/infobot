@@ -2,7 +2,7 @@
 
 use DBI;
 
-my $dsn = "DBI:mysql:blootbot:localhost";
+my $dsn = "DBI:mysql:infobot:localhost";
 my $dbh = DBI->connect($dsn, "USERNAME", "PASSWORD");
 
 my @factkey;
@@ -65,3 +65,5 @@ foreach (keys %factval) {
 }
 
 $dbh->disconnect();
+
+# vim:ts=4:sw=4:expandtab:tw=80

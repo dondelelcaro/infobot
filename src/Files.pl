@@ -26,7 +26,7 @@ sub loadLang {
 
     while (<FILE>) {
 	chop;
-	if ($_ eq "" || /^#/) {
+	if ($_ eq '' || /^#/) {
 	    undef $replyName;
 	    next;
 	}
@@ -53,7 +53,7 @@ sub loadLang {
 
 # File: Irc Servers list.
 sub loadIRCServers {
-    my ($file)	= $bot_config_dir."/blootbot.servers";
+    my ($file)	= $bot_config_dir."/infobot.servers";
     @ircServers = ();
     %ircPort = ();
 
@@ -81,3 +81,5 @@ sub loadIRCServers {
 }
 
 1;
+
+# vim:ts=4:sw=4:expandtab:tw=80

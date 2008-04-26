@@ -83,11 +83,9 @@ sub uptimeWriteFile {
   }
 
   close OUT;
-  &status("--- Saved uptime records.");
-
-  return unless defined $conn;
-
-  $conn->schedule(&getRandomInt("1800-3600"), \&uptimeWriteFile, "");
+  &status('--- Saved uptime records.');
 }
 
 1;
+
+# vim:ts=4:sw=4:expandtab:tw=80

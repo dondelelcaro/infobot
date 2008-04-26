@@ -14,7 +14,7 @@ sub piglatin
 
   # FIXME: does not handle:
   #  non-trailing punctuation and hyphens
-  #  y as vowel "style" -> "ylestay"
+  #  y as vowel 'style' -> 'ylestay'
   #  contractions
   for my $word (split /\s+/, $text) {
     my ($pigword, $postfix);
@@ -40,3 +40,5 @@ sub piglatin
 }
 
 1;
+
+# vim:ts=4:sw=4:expandtab:tw=80

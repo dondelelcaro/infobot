@@ -45,7 +45,7 @@ sub queryText {
 	my $res_return = 5;
 
 	my $ua = new LWP::UserAgent;
-	$ua->proxy('http', $::param{'httpProxy'}) if (&::IsParam("httpProxy"));
+	$ua->proxy('http', $::param{'httpProxy'}) if (&::IsParam('httpProxy'));
 
 	$ua->timeout(10);
 
@@ -101,5 +101,7 @@ sub query {
 }
 
 1;
-# vim: shiftwidth=2 tabstop=2
+
+# vim:ts=4:sw=4:expandtab:tw=80
+
 __END__

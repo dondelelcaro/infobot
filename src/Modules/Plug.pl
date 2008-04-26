@@ -39,7 +39,7 @@ sub Plug {
     my $retval  = "i could not get the headlines.";
 
     if (scalar @results) {
-	my $prefix	= "Plug Headlines ";
+	my $prefix	= 'Plug Headlines ';
 	my @list	= &plugParse(@results);
 	$retval		= &::formListReply(0, $prefix, @list);
     }
@@ -103,3 +103,5 @@ sub plugAnnounce {
 }
 
 1;
+
+# vim:ts=4:sw=4:expandtab:tw=80

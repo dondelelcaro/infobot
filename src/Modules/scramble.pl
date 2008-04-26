@@ -44,7 +44,7 @@ sub scramble
       }
 
       # shuffle the middle letters
-      $new_middle = join "", List::Util::shuffle(split //, $middle);
+      $new_middle = join '', List::Util::shuffle(split //, $middle);
     }
     while (($cnt < 10) && ($middle eq $new_middle));
 
@@ -56,7 +56,9 @@ sub scramble
   # been included in the original string
   $scrambled =~ s/\s+$//;
 
-  &::performStrictReply($scrambled||"Unknown Error Condition");
+  &::performStrictReply($scrambled||'Unknown Error Condition');
 }
 
 1;
+
+# vim:ts=4:sw=4:expandtab:tw=80

@@ -48,7 +48,7 @@ sub Cmdonjoin {
 	my $nick = $3;
 	my $msg = $5;
 
-	# get options 
+	# get options
 	my $strict = &getChanConf('onjoinStrict');
 	my $ops = &getChanConf('onjoinOpsOnly');
 
@@ -111,7 +111,7 @@ sub Cmdonjoin {
 	&sqlDelete('onjoin', { nick => $nick, channel => $ch });
 	my $insert = &sqlInsert('onjoin', { nick => $nick, channel => $ch, message => $msg, modified_by => $who, modified_time => time() });
 	if ($insert){
-		&performReply("ok");
+		&performReply('ok');
 	}
 	else{
 		&performReply('whoops. database error');
@@ -120,3 +120,5 @@ sub Cmdonjoin {
 }
 
 1;
+
+# vim:ts=4:sw=4:expandtab:tw=80

@@ -18,7 +18,7 @@ use vars qw(%sched %schedule);
 # )
 
 #%schedule = {
-#	uptimeLoop => ("", 60, 1),
+#	uptimeLoop => ('', 60, 1),
 #};
 
 sub setupSchedulersII {
@@ -70,6 +70,7 @@ sub setupSchedulers {
     &factoidCheck(2);	# takes a couple of seconds on a 486. defer it
 # TODO: convert to new format... or nuke altogether.
     &newsFlush(2);
+    &rssFeeds(2);
 
     # 1 for run straight away
     &uptimeLoop(1);
@@ -99,7 +100,8 @@ sub setupSchedulers {
 
 sub ScheduleThis {
     my ($interval, $codename, @args) = @_;
-    my $waittime = &getRandomInt($interval);
+    # Set to supllied value plus a random 0-60 seconds to avoid simultaneous runs
+    my $waittime = &getRandomInt("$interval-" . ($interval+&getRandomInt(60) ) );
 
     if (!defined $waittime) {
 	&WARN("interval == waittime == UNDEF for $codename.");
@@ -124,17 +126,33 @@ sub ScheduleThis {
 #### LET THE FUN BEGIN.
 ####
 
+sub rssFeeds {
+  my $interval = $param{'rssFeedTime'} || 30;
+  if (@_) {
+    &ScheduleThis( $interval*60, 'rssFeeds' ); # minutes
+    return if ( $_[0] eq '2' );    # defer.
+  }
+  &Forker(
+    'RSSFeeds',
+    sub {
+      my $line = &RSSFeeds::RSS();
+      return unless ( defined $line );
+
+    }
+  );
+}
+
 sub randomQuote {
-    my $interval = &getChanConfDefault("randomQuoteInterval", 60, $chan);
+    my $interval = &getChanConfDefault('randomQuoteInterval', 60, $chan);
     if (@_) {
-	&ScheduleThis($interval, "randomQuote");
-	return if ($_[0] eq "2");	# defer.
+	&ScheduleThis($interval*60, 'randomQuote'); # every hour
+	return if ($_[0] eq '2');	# defer.
     }
 
-    foreach ( &ChanConfList("randomQuote") ) {
+    foreach ( &ChanConfList('randomQuote') ) {
 	next unless (&validChan($_));
 
-	my $line = &getRandomLineFromFile($bot_data_dir. "/blootbot.randtext");
+	my $line = &getRandomLineFromFile($bot_data_dir. "/infobot.randtext");
 	if (!defined $line) {
 	    &ERROR("random Quote: weird error?");
 	    return;
@@ -151,18 +169,18 @@ sub randomFactoid {
     my ($key,$val);
     my $error = 0;
 
-    my $interval = &getChanConfDefault("randomFactoidInterval", 60, $chan);
+    my $interval = &getChanConfDefault('randomFactoidInterval', 60, $chan);
     if (@_) {
-	&ScheduleThis($interval, "randomFactoid");
-	return if ($_[0] eq "2");	# defer.
+	&ScheduleThis($interval*60, 'randomFactoid'); # minutes
+	return if ($_[0] eq '2');	# defer.
     }
 
-    foreach ( &ChanConfList("randomFactoid") ) {
+    foreach ( &ChanConfList('randomFactoid') ) {
 	next unless (&validChan($_));
 
 	&status("sending random Factoid to $_.");
 	while (1) {
-	    ($key,$val) = &randKey("factoids","factoid_key,factoid_value");
+	    ($key,$val) = &randKey('factoids',"factoid_key,factoid_value");
 	    &DEBUG("rF: $key, $val");
 ###	    $val =~ tr/^[A-Z]/[a-z]/;	# blah is Good => blah is good.
 	    last if ((defined $val) and ($val !~ /^</) and ($key !~ /\#DEL\#/) and ($key !~ /^cmd:/));
@@ -181,13 +199,13 @@ sub randomFactoid {
 
 sub logLoop {
     if (@_) {
-	&ScheduleThis(60, "logLoop");
-	return if ($_[0] eq "2");	# defer.
+	&ScheduleThis(3600, 'logLoop'); # 1 hour
+	return if ($_[0] eq '2');	# defer.
     }
 
     return unless (defined fileno LOG);
-    return unless (&IsParam("logfile"));
-    return unless (&IsParam("maxLogSize"));
+    return unless (&IsParam('logfile'));
+    return unless (&IsParam('maxLogSize'));
 
     ### check if current size is too large.
     if ( -s $file{log} > $param{'maxLogSize'}) {
@@ -250,18 +268,16 @@ sub logLoop {
 
 sub seenFlushOld {
     if (@_) {
-	&ScheduleThis(1440, "seenFlushOld");
-	return if ($_[0] eq "2");	# defer.
+	&ScheduleThis(86400, 'seenFlushOld'); # 1 day
+	return if ($_[0] eq '2');	# defer.
     }
 
-    # NO SEEN FLUSHING!!!
-    return;
     # is this global-only?
-    return unless (&IsChanConf("seen") > 0);
-    return unless (&IsChanConf("seenFlushInterval") > 0);
+    return unless (&IsChanConf('seen') > 0);
+    return unless (&IsChanConf('seenFlushInterval') > 0);
 
     # global setting. does not make sense for per-channel.
-    my $max_time = &getChanConfDefault("seenMaxDays", 30, $chan) *60*60*24;
+    my $max_time = &getChanConfDefault('seenMaxDays', 30, $chan) *60*60*24;
     my $delete   = 0;
 
     if ($param{'DBType'} =~ /^(pgsql|mysql|sqlite(2)?)$/i) {
@@ -280,7 +296,7 @@ sub seenFlushOld {
 	    while (my @row = $sth->fetchrow_array) {
 		my ($nick,$time) = @row;
 
-		&sqlDelete("seen", { nick => $nick } );
+		&sqlDelete('seen', { nick => $nick } );
 		$delete++;
 	    }
 	    $sth->finish;
@@ -294,8 +310,8 @@ sub seenFlushOld {
 
 sub newsFlush {
     if (@_) {
-	&ScheduleThis(60, "newsFlush");
-	return if ($_[0] eq "2");	# defer.
+	&ScheduleThis(3600, 'newsFlush'); # 1 hour
+	return if ($_[0] eq '2');	# defer.
     }
 
     if (!&ChanConfList('News')) {
@@ -371,25 +387,25 @@ sub newsFlush {
 }
 
 sub chanlimitCheck {
-    my $interval = &getChanConfDefault("chanlimitcheckInterval", 10, $chan);
+    my $interval = &getChanConfDefault('chanlimitcheckInterval', 10, $chan);
     my $mynick=$conn->nick();
 
     if (@_) {
-	&ScheduleThis($interval, "chanlimitCheck");
-	return if ($_[0] eq "2");
+	&ScheduleThis($interval*60, 'chanlimitCheck'); # default 10 minutes
+	return if ($_[0] eq '2');
     }
 
-    my $str = join(' ', &ChanConfList("chanlimitcheck") );
+    my $str = join(' ', &ChanConfList('chanlimitcheck') );
 
-    foreach $chan ( &ChanConfList("chanlimitcheck") ) {
+    foreach $chan ( &ChanConfList('chanlimitcheck') ) {
 	next unless (&validChan($chan));
 
-	if ($chan eq "_default") {
+	if ($chan eq '_default') {
 	    &WARN("chanlimit: we're doing $chan!! HELP ME!");
 	    next;
 	}
 
-	my $limitplus	= &getChanConfDefault("chanlimitcheckPlus", 5, $chan);
+	my $limitplus	= &getChanConfDefault('chanlimitcheckPlus', 5, $chan);
 	my $newlimit	= scalar(keys %{ $channels{$chan}{''} }) + $limitplus;
 	my $limit	= $channels{$chan}{'l'};
 
@@ -443,8 +459,8 @@ sub netsplitCheck {
     my ($s1,$s2);
 
     if (@_) {
-	&ScheduleThis(15, "netsplitCheck");
-	return if ($_[0] eq "2");
+	&ScheduleThis(300, 'netsplitCheck'); # every 5 minutes
+	return if ($_[0] eq '2');
     }
 
     $cache{'netsplitCache'}++;
@@ -491,9 +507,10 @@ sub netsplitCheck {
     }
 
     # yet another hack.
-    foreach (keys %channels) {
-	my $i = $cache{maxpeeps}{$chan} || 0;
-	my $j = scalar(keys %{ $channels{$chan} });
+    # FIXED: $ch should be used rather than $chan since it creates NULL channels in the hash
+    foreach my $ch (keys %channels) {
+	my $i = $cache{maxpeeps}{$ch} || 0;
+	my $j = scalar(keys %{ $channels{$ch} });
 	next unless ($i > 10 and 0.25*$i > $j);
 
 	&DEBUG("netsplit: 0.25*max($i) > current($j); possible netsplit?");
@@ -520,12 +537,12 @@ sub floodLoop {
     my $who;
 
     if (@_) {
-	&ScheduleThis(60, "floodLoop");	# minutes.
-	return if ($_[0] eq "2");
+	&ScheduleThis(60, 'floodLoop'); # 1 minute
+	return if ($_[0] eq '2');
     }
 
     my $time		= time();
-    my $interval	= &getChanConfDefault("floodCycle",60, $chan);
+    my $interval	= &getChanConfDefault('floodCycle',60, $chan);
 
     foreach $who (keys %flood) {
 	foreach (keys %{ $flood{$who} }) {
@@ -545,29 +562,25 @@ sub floodLoop {
 
 sub seenFlush {
     if (@_) {
-	my $interval = &getChanConfDefault("seenFlushInterval", 60, $chan);
-	&ScheduleThis($interval, "seenFlush");
-	return if ($_[0] eq "2");
+	my $interval = &getChanConfDefault('seenFlushInterval', 60, $chan);
+	&ScheduleThis($interval*60, 'seenFlush'); # minutes
+	return if ($_[0] eq '2');
     }
 
     my %stats;
     my $nick;
     my $flushed = 0;
-    $stats{'count_old'} = &countKeys("seen") || 0;
+    $stats{'count_old'} = &countKeys('seen') || 0;
     $stats{'new'}	= 0;
     $stats{'old'}	= 0;
 
     if ($param{'DBType'} =~ /^(mysql|pgsql|sqlite(2)?)$/i) {
 	foreach $nick (keys %seencache) {
-	    my $lastcount = &sqlSelect('seen','messagecount',{nick=>lc $seencache{$nick}{'nick'}}) || 0;
-	    my $retval = &sqlReplace("seen", {
-			nick	=> lc $seencache{$nick}{'nick'},
+	    my $retval = &sqlSet('seen', {'nick' => lc $seencache{$nick}{'nick'}}, {
 			time	=> $seencache{$nick}{'time'},
 			host	=> $seencache{$nick}{'host'},
 			channel	=> $seencache{$nick}{'chan'},
 			message	=> $seencache{$nick}{'msg'},
-			messagecount => $lastcount+$seencache{$nick}{'msgcount'},
-						
 	    } );
 
 	    delete $seencache{$nick};
@@ -582,8 +595,8 @@ sub seenFlush {
 	$stats{'new'}*100/($stats{'count_old'} || 1),
 	$stats{'new'}, ( $stats{'count_old'} || 1) ), 2) if ($stats{'new'});
     &VERB(sprintf("  now seen: %3.1f%% (%d/%d)",
-	$stats{'old'}*100 / ( &countKeys("seen") || 1),
-	$stats{'old'}, &countKeys("seen") ), 2)		if ($stats{'old'});
+	$stats{'old'}*100 / ( &countKeys('seen') || 1),
+	$stats{'old'}, &countKeys('seen') ), 2)		if ($stats{'old'});
 
     &WARN("scalar keys seenflush != 0!")	if (scalar keys %seenflush);
 }
@@ -593,8 +606,8 @@ sub leakCheck {
     my $count = 0;
 
     if (@_) {
-	&ScheduleThis(240, "leakCheck");
-	return if ($_[0] eq "2");
+	&ScheduleThis(14400, 'leakCheck'); # every 4 hours
+	return if ($_[0] eq '2');
     }
 
     # flood. this is dealt with in floodLoop()
@@ -649,8 +662,8 @@ sub leakCheck {
 
 sub ignoreCheck {
     if (@_) {
-	&ScheduleThis(60, "ignoreCheck");
-	return if ($_[0] eq "2");	# defer.
+	&ScheduleThis(60, 'ignoreCheck'); # once every minute
+	return if ($_[0] eq '2');	# defer.
     }
 
     my $time	= time();
@@ -677,8 +690,8 @@ sub ignoreCheck {
 
 sub ircCheck {
     if (@_) {
-	&ScheduleThis(15, "ircCheck");
-	return if ($_[0] eq "2");	# defer.
+	&ScheduleThis(300, 'ircCheck'); # every 5 minutes
+	return if ($_[0] eq '2');	# defer.
     }
 
     $cache{statusSafe} = 1;
@@ -686,17 +699,13 @@ sub ircCheck {
 	$conn=$conns{$_};
 	my $mynick=$conn->nick();
 	&DEBUG("ircCheck for $_");
-	my @join = &getJoinChans(1);
+	my @join = &getJoinChans(900); # Display with min of 900sec delay between redisplay
 	if (scalar @join) {
 	    &FIXME('ircCheck: found channels to join! ' . join(',',@join));
 	    &joinNextChan();
 	}
 
-    my @join = &getJoinChans(1);
-    if (scalar @join) {
-	&FIXME('ircCheck: found channels to join! ' . join(',',@join));
-	&joinNextChan();
-    }
+	# TODO: fix on_disconnect()
 
 	if (time() - $msgtime > 3600) {
 	    # TODO: shouldn't we use cache{connect} somewhere?
@@ -708,28 +717,28 @@ sub ircCheck {
 	    } else {
 		&status('ircCheck: possible lost in space; checking.'.
 		    scalar(gmtime) );
-		&msg($mynick, "TEST");
+		&msg($mynick, 'TEST');
 		$cache{connect} = time();
 	    }
 	}
     }
 
-       if (grep /^\s*$/, keys %channels) {
-           &WARN('ircCheck: we have a NULL chan in hash channels? removing!');
-           if (!exists $channels{''}) {
-               &DEBUG('ircCheck: this should never happen!');
-           }
-      }
-    if ($ident !~ /^\Q$param{ircNick}\E$/) {
-	# this does not work unfortunately.
-	&WARN("ircCheck: ident($ident) != param{ircNick}($param{ircNick}).");
+        if (grep /^\s*$/, keys %channels) {
+            &WARN('ircCheck: we have a NULL chan in hash channels? removing!');
+            if (!exists $channels{''}) {
+                &DEBUG('ircCheck: this should never happen!');
+            }
+       }
+     if ($ident !~ /^\Q$param{ircNick}\E$/) {
+       # this does not work unfortunately.
+       &WARN("ircCheck: ident($ident) != param{ircNick}($param{ircNick}).");
 
-	# this check is misleading... perhaps we should do a notify.
-	if (! &IsNickInAnyChan( $param{ircNick} ) ) {
-	    &DEBUG("$param{ircNick} not in use... changing!");
-	    &nick( $param{ircNick} );
-	} else {
-	    &WARN("$param{ircNick} is still in use...");
+       # this check is misleading... perhaps we should do a notify.
+       if (! &IsNickInAnyChan( $param{ircNick} ) ) {
+           &DEBUG("$param{ircNick} not in use... changing!");
+           &nick( $param{ircNick} );
+       } else {
+           &WARN("$param{ircNick} is still in use...");
 	}
     }
 
@@ -749,8 +758,8 @@ sub ircCheck {
 
 sub miscCheck {
     if (@_) {
-	&ScheduleThis(120, "miscCheck");
-	return if ($_[0] eq "2");	# defer.
+	&ScheduleThis(7200, 'miscCheck'); # every 2 hours
+	return if ($_[0] eq '2');	# defer.
     }
 
     # SHM check.
@@ -763,9 +772,9 @@ sub miscCheck {
     }
 
     # make backup of important files.
-    &mkBackup( $bot_state_dir."/blootbot.chan", 60*60*24*3);
-    &mkBackup( $bot_state_dir."/blootbot.users", 60*60*24*3);
-    &mkBackup( $bot_base_dir."/blootbot-news.txt", 60*60*24*1);
+    &mkBackup( $bot_state_dir."/infobot.chan", 60*60*24*3);
+    &mkBackup( $bot_state_dir."/infobot.users", 60*60*24*3);
+    &mkBackup( $bot_base_dir."/infobot-news.txt", 60*60*24*1);
 
     # flush cache{lobotomy}
     foreach (keys %{ $cache{lobotomy} }) {
@@ -796,7 +805,7 @@ sub miscCheck {
 	    # don't touch other bots, if they're running.
 	    next unless ($param{ircUser} =~ /^\Q$n\E$/);
 	} else {
-	    &DEBUG("shm: $shmid is not ours or old blootbot => ($z)");
+	    &DEBUG("shm: $shmid is not ours or old infobot => ($z)");
 	    next;
 	}
 
@@ -807,8 +816,8 @@ sub miscCheck {
 
 sub miscCheck2 {
     if (@_) {
-	&ScheduleThis(240, "miscCheck2");
-	return if ($_[0] eq "2");	# defer.
+	&ScheduleThis(14400, 'miscCheck2'); # every 4 hours
+	return if ($_[0] eq '2');	# defer.
     }
 
     # debian check.
@@ -853,8 +862,8 @@ sub getNickInUse {
 #    }
 #
 #    if (@_) {
-#	&ScheduleThis(30, "getNickInUse");
-#	return if ($_[0] eq "2");	# defer.
+#	&ScheduleThis(30, 'getNickInUse');
+#	return if ($_[0] eq '2');	# defer.
 #    }
 #
 #    &nick( $param{'ircNick'} );
@@ -865,7 +874,7 @@ sub uptimeLoop {
 #    return unless &IsParam('Uptime');
 
     if (@_) {
-	&ScheduleThis(60, 'uptimeLoop');
+	&ScheduleThis(3600, 'uptimeLoop'); # once per hour
 	return if ($_[0] eq '2');	# defer.
     }
 
@@ -875,8 +884,8 @@ sub uptimeLoop {
 sub slashdotLoop {
 
     if (@_) {
-	&ScheduleThis(60, 'slashdotLoop');
-	return if ($_[0] eq "2");
+	&ScheduleThis(3600, 'slashdotLoop'); # once per hour
+	return if ($_[0] eq '2');
     }
 
     my @chans = &ChanConfList('slashdotAnnounce');
@@ -898,8 +907,8 @@ sub slashdotLoop {
 sub plugLoop {
 
     if (@_) {
-	&ScheduleThis(60, 'plugLoop');
-	return if ($_[0] eq "2");
+	&ScheduleThis(3600, 'plugLoop'); # once per hour
+	return if ($_[0] eq '2');
     }
 
     my @chans = &ChanConfList('plugAnnounce');
@@ -920,14 +929,14 @@ sub plugLoop {
 
 sub kernelLoop {
     if (@_) {
-	&ScheduleThis(240, "kernelLoop");
-	return if ($_[0] eq "2");
+	&ScheduleThis(14400, 'kernelLoop'); # once every 4 hours
+	return if ($_[0] eq '2');
     }
 
-    my @chans = &ChanConfList("kernelAnnounce");
+    my @chans = &ChanConfList('kernelAnnounce');
     return unless (scalar @chans);
 
-    &Forker("Kernel", sub {
+    &Forker('Kernel', sub {
 	my @data = &Kernel::kernelAnnounce();
 
 	foreach (@chans) {
@@ -948,12 +957,12 @@ sub wingateCheck {
     ### FILE CACHE OF OFFENDING WINGATES.
     foreach (grep /^$host$/, @wingateBad) {
 	&status("Wingate: RUNNING ON $host BY $who");
-	&ban("*!*\@$host", "") if &IsChanConf('wingateBan') > 0;
+	&ban("*!*\@$host", '') if &IsChanConf('wingateBan') > 0;
 
 	my $reason	= &getChanConf('wingateKick');
 
 	next unless ($reason);
-	&kick($who, "", $reason)
+	&kick($who, '', $reason)
     }
 
     ### RUN CACHE OF TRIED WINGATES.
@@ -978,8 +987,8 @@ sub wingateCheck {
 ### TODO: ??
 sub wingateWriteFile {
     if (@_) {
-	&ScheduleThis(60, 'wingateWriteFile');
-	return if ($_[0] eq "2");	# defer.
+	&ScheduleThis(3600, 'wingateWriteFile'); # once per hour
+	return if ($_[0] eq '2');	# defer.
     }
 
     return unless (scalar @wingateCache);
@@ -1010,21 +1019,21 @@ sub wingateWriteFile {
 
 sub factoidCheck {
     if (@_) {
-	&ScheduleThis(720, "factoidCheck");
-	return if ($_[0] eq "2");	# defer.
+	&ScheduleThis(43200, 'factoidCheck'); # ever 12 hours
+	return if ($_[0] eq '2');	# defer.
     }
 
-    my @list	= &searchTable("factoids", "factoid_key", "factoid_key", " #DEL#");
-    my $stale	= &getChanConfDefault("factoidDeleteDelay", 14, $chan) *60*60*24;
+    my @list	= &searchTable('factoids', 'factoid_key', 'factoid_key', " #DEL#");
+    my $stale	= &getChanConfDefault('factoidDeleteDelay', 14, $chan) *60*60*24;
     if ($stale < 1) {
-	# disable it since it's "illegal".
+	# disable it since it's 'illegal'.
 	return;
     }
 
     my $time	= time();
 
     foreach (@list) {
-	my $age = &getFactInfo($_, "modified_time");
+	my $age = &getFactInfo($_, 'modified_time');
 
 	if (!defined $age or $age !~ /^\d+$/) {
 	    if (scalar @list > 50) {
@@ -1055,8 +1064,8 @@ sub dccStatus {
     return unless (scalar keys %{ $dcc{CHAT} });
 
     if (@_) {
-	&ScheduleThis(10, "dccStatus");
-	return if ($_[0] eq "2");	# defer.
+	&ScheduleThis(600, 'dccStatus'); # every 10 minutes
+	return if ($_[0] eq '2');	# defer.
     }
 
     my $time = strftime("%H:%M", gmtime(time()) );
@@ -1117,9 +1126,9 @@ sub mkBackup {
 	return;
     }
 
-    my $age	= "New";
+    my $age	= 'New';
     if ( -e "$file~" ) {
- 	$backup++	if ((stat $file)[9] - (stat "$file~")[9] > $time);
+	$backup++	if ((stat $file)[9] - (stat "$file~")[9] > $time);
 	my $delta	= time() - (stat "$file~")[9];
 	$age		= &Time2String($delta);
     } else {
@@ -1134,3 +1143,5 @@ sub mkBackup {
 }
 
 1;
+
+# vim:ts=4:sw=4:expandtab:tw=80

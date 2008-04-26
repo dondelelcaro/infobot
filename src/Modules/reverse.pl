@@ -9,7 +9,9 @@ package reverse;
 
 sub reverse {
     my($message) = @_;
-    &::performStrictReply(join("",reverse(split("",$message))));
+    &::performStrictReply(join('',reverse(split('',$message))));
 }
 
 1;
+
+# vim:ts=4:sw=4:expandtab:tw=80

@@ -72,14 +72,19 @@ sub sqlOpenDB {
 	$db = "dbname=$db.sqlite";
     } elsif ($type =~ /^pg/i) {
 	$db = "dbname=$db";
-	$type = "Pg";
+	$type = 'Pg';
     }
 
     my $dsn = "DBI:$type:$db";
-    my $hoststr = "";
+    my $hoststr = '';
     # SQLHost should be unset for SQLite
     if (exists $param{'SQLHost'} and $param{'SQLHost'}) {
-	$dsn    .= ":$param{SQLHost}";
+	# PostgreSQL requires ";" and keyword 'host'. See perldoc Pg -- troubled
+	if ($type eq 'Pg') {
+		$dsn	.= ";host=$param{SQLHost}";
+	} else {
+		$dsn    .= ":$param{SQLHost}";
+	}
 	$hoststr = " to $param{'SQLHost'}";
     }
     # SQLite ignores $user and $pass
@@ -105,7 +110,7 @@ sub sqlCloseDB {
     return 0 unless ($dbh);
 
     my $x = $param{SQLHost};
-    my $hoststr = ($x) ? " to $x" : "";
+    my $hoststr = ($x) ? " to $x" : '';
 
     &status("Closed DBI connection$hoststr.");
     $dbh->disconnect();
@@ -276,7 +281,7 @@ sub sqlSet {
 	return;
     }
 
-    if (!defined $data_href or ref($data_href) ne "HASH") {
+    if (!defined $data_href or ref($data_href) ne 'HASH') {
 	&WARN("sqlSet: data_href == NULL.");
 	return;
     }
@@ -309,7 +314,7 @@ sub sqlSet {
 sub sqlUpdate {
     my ($table, $data_href, $where_href) = @_;
 
-    if (!defined $data_href or ref($data_href) ne "HASH") {
+    if (!defined $data_href or ref($data_href) ne 'HASH') {
 	&WARN("sqlSet: data_href == NULL.");
 	return 0;
     }
@@ -317,7 +322,7 @@ sub sqlUpdate {
     my $where  = &hashref2where($where_href) if ($where_href);
     my $update = &hashref2update($data_href) if ($data_href);
 
-    &sqlRaw("Update", "UPDATE $table SET $update WHERE $where");
+    &sqlRaw('Update', "UPDATE $table SET $update WHERE $where");
 
     return 1;
 }
@@ -326,9 +331,10 @@ sub sqlUpdate {
 # Usage: &sqlInsert($table, $data_href, $other);
 sub sqlInsert {
     my ($table, $data_href, $other) = @_;
-    # note: if $other == 1, add "DELAYED" to function instead.
+    # note: if $other == 1, add 'DELAYED' to function instead.
+    # note: ^^^ doesnt actually do anything lol. Need code to s/1/DELAYED/ below -- troubled
 
-    if (!defined $data_href or ref($data_href) ne "HASH") {
+    if (!defined $data_href or ref($data_href) ne 'HASH') {
 	&WARN("sqlInsert: data_href == NULL.");
 	return;
     }
@@ -344,18 +350,18 @@ sub sqlInsert {
 
     &sqlRaw("Insert($table)", sprintf(
 	"INSERT %s INTO %s (%s) VALUES (%s)",
-	($other || ""), $table, join(',',@k), join(',',@v)
+	($other || ''), $table, join(',',@k), join(',',@v)
     ) );
 
     return 1;
 }
 
 #####
-# Usage: &sqlReplace($table, $data_href);
+# Usage: &sqlReplace($table, $data_href, [$pkey]);
 sub sqlReplace {
-    my ($table, $data_href) = @_;
+    my ($table, $data_href, $pkey) = @_;
 
-    if (!defined $data_href or ref($data_href) ne "HASH") {
+    if (!defined $data_href or ref($data_href) ne 'HASH') {
 	&WARN("sqlReplace: data_href == NULL.");
 	return;
     }
@@ -369,10 +375,29 @@ sub sqlReplace {
 	return;
     }
 
-    &sqlRaw("Replace($table)", sprintf(
-	"REPLACE INTO %s (%s) VALUES (%s)",
-	$table, join(',',@k), join(',',@v)
-    ) );
+
+    if ($param{'DBType'} =~ /^pgsql$/i) {
+	# OK, heres the scoop. There is currently no REPLACE INTO in Pgsql.
+	# However, the bot already seems to search for factoids before insert
+	# anyways. Perhaps we could change this to a generic INSERT INTO so
+	# we can skip the seperate sql? -- troubled to: TimRiker
+	# PGSql syntax: UPDATE table SET key = 'value', key2 = 'value2' WHERE key = 'value'
+
+#	&sqlRaw("Replace($table)", sprintf(
+#		"INSERT INTO %s (%s) VALUES (%s)",
+#		$table, join(',',@k), join(',',@v)
+#	));
+	&WARN("DEBUG: ($pkey = ) " . sprintf(
+                "REPLACE INTO %s (%s) VALUES (%s)",
+                $table, join(',',@k), join(',',@v)
+        ));
+
+    } else {
+	&sqlRaw("Replace($table)", sprintf(
+		"REPLACE INTO %s (%s) VALUES (%s)",
+		$table, join(',',@k), join(',',@v)
+	));
+    }
 
     return 1;
 }
@@ -382,14 +407,14 @@ sub sqlReplace {
 sub sqlDelete {
     my ($table, $where_href) = @_;
 
-    if (!defined $where_href or ref($where_href) ne "HASH") {
+    if (!defined $where_href or ref($where_href) ne 'HASH') {
 	&WARN("sqlDelete: where_href == NULL.");
 	return;
     }
 
     my $where	= &hashref2where($where_href);
 
-    &sqlRaw("Delete", "DELETE FROM $table WHERE $where");
+    &sqlRaw('Delete', "DELETE FROM $table WHERE $where");
 
     return 1;
 }
@@ -469,7 +494,7 @@ sub hashref2where {
 	return;
     }
 
-    if (ref($href) ne "HASH") {
+    if (ref($href) ne 'HASH') {
 	&WARN("hashref2where: href is not HASH ref (href => $href)");
 	return;
     }
@@ -492,7 +517,7 @@ sub hashref2where {
 sub hashref2update {
     my ($href) = @_;
 
-    if (ref($href) ne "HASH") {
+    if (ref($href) ne 'HASH') {
 	&WARN("hashref2update: href is not HASH ref.");
 	return;
     }
@@ -518,7 +543,7 @@ sub hashref2update {
 sub hashref2array {
     my ($href) = @_;
 
-    if (ref($href) ne "HASH") {
+    if (ref($href) ne 'HASH') {
 	&WARN("hashref2update: href is not HASH ref.");
 	return;
     }
@@ -546,7 +571,7 @@ sub hashref2array {
 # Usage: &countKeys($table, [$col]);
 sub countKeys {
     my ($table, $col) = @_;
-    $col ||= "*";
+    $col ||= '*';
 
     return (&sqlRawReturn("SELECT count($col) FROM $table"))[0];
 }
@@ -627,18 +652,20 @@ sub searchTable {
 }
 
 sub sqlCreateTable {
-    my($table)	= @_;
+    my($table, $dbtype)	= @_;
     my(@path)	= ($bot_data_dir, ".","..","../..");
     my $found	= 0;
     my $data;
+    $dbtype = lc $dbtype;
 
     foreach (@path) {
-	my $file = "$_/setup/$table.sql";
+	my $file = "$_/setup/$dbtype/$table.sql";
 	next unless ( -f $file );
 
 	open(IN, $file);
 	while (<IN>) {
 	    chop;
+	    next if $_ =~ /^--/;
 	    $data .= $_;
 	}
 
@@ -686,6 +713,31 @@ sub checkTables {
 	}
 
 	# create database not needed for SQLite
+
+    } elsif ($param{DBType} =~ /^pgsql$/i) {
+	# $sql_showDB = SQL to select the DB list
+	# $sql_showTBL = SQL to select all tables for the current connection
+
+	my $sql_showDB = "SELECT datname FROM pg_database";
+	my $sql_showTBL = "SELECT tablename FROM pg_tables \
+		WHERE schemaname = 'public'";
+
+	foreach ( &sqlRawReturn($sql_showDB) ) {
+		$database_exists++ if ($_ eq $param{'DBName'});
+	}
+
+	unless ($database_exists) {
+		&status("Creating PostgreSQL database $param{'DBName'}");
+		&status("(actually, not really, please read the INSTALL file)");
+	}
+
+        # retrieve a list of db's from the server. This code is from mysql above, please check -- troubled
+        my @tables = map {s/^\`//; s/\`$//; $_;} &sqlRawReturn($sql_showTBL);
+        if ($#tables == -1){
+            @tables = $dbh->tables;
+        }
+        &status("Tables: ".join(',',@tables));
+        @db{@tables} = (1) x @tables;
     }
 
     foreach ( qw(botmail connections factoids rootwarn seen stats onjoin) ) {
@@ -698,8 +750,10 @@ sub checkTables {
 
 	$cache{create_table}{$_} = 1;
 
-	&sqlCreateTable($_);
+	&sqlCreateTable($_, $param{DBType});
     }
 }
 
 1;
+
+# vim:ts=4:sw=4:expandtab:tw=80

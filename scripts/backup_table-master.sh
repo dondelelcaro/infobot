@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BACKUP_SRCDIR="/var/lib/mysql/"
-BACKUP_TDIR="blootbot/"
+BACKUP_TDIR="infobot/"
 BACKUP_FILE="/home/a/apt/public_html/tables.tar.bz2"
 
 pwd
@@ -18,3 +18,5 @@ else
 fi
 
 exit 0;
+
+# vim:ts=4:sw=4:expandtab:tw=80

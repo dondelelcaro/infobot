@@ -21,13 +21,15 @@ sub HTTPDtype {
 	$s->write_request(HEAD => "/");
 
 	my $sel = IO::Select->new($s);
-	$line = "Header timeout" unless $sel->can_read(10);
+	$line = 'Header timeout' unless $sel->can_read(10);
 	($code, $mess, %h) = $s->read_response_headers;
 
 	$line = (length($h{Server}) > 0) ? $h{Server} :
 	  "Couldn't fetch headers from $HOST";
 
-    &::performStrictReply($line||"Unknown Error Condition");
+    &::performStrictReply($line||'Unknown Error Condition');
 }
 
 1;
+
+# vim:ts=4:sw=4:expandtab:tw=80

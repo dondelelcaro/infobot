@@ -9,7 +9,7 @@ require "src/logger.pl";
 require "src/modules.pl";
 require "src/Factoids/DBCommon.pl";
 
-&loadConfig($bot_config_dir."/blootbot.config");
+&loadConfig($bot_config_dir."/infobot.config");
 &loadDBModules();
 
 unless (@_) {
@@ -34,3 +34,5 @@ foreach (@_) {
 
     close IN;
 }
+
+# vim:ts=4:sw=4:expandtab:tw=80

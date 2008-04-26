@@ -17,9 +17,11 @@ my $announce	= 0;
 my $defaultdist	= 'sid';
 my $refresh = &::getChanConfDefault('debianRefreshInterval', 7, $::chan) * 60 * 60 * 24;
 my $debug	= 0;
-my $debian_dir	= $::bot_state_dir . 'debian';
-my $country	= 'us'; # well .config it yourself then. ;-)
+my $debian_dir	= $::bot_state_dir . '/debian';
+my $country	= 'nl'; # well .config it yourself then. ;-)
 my $protocol	= 'http';
+# EDIT THIS (i386, amd64, powerpc, [etc.]):
+my $arch = "i386";
 
 # format: "alias=real".
 my %dists	= (
@@ -42,55 +44,43 @@ my %archived_dists = (
 );
 
 my %archiveurlcontents = (
-	"Contents-##DIST-i386.gz" =>
+	"Contents-##DIST-$arch.gz" =>
 		"$protocol://debian.crosslink.net/debian-archive".
-		"/dists/##DIST/Contents-i386.gz",
+		"/dists/##DIST/Contents-$arch.gz",
 );
 
 my %archiveurlpackages = (
-	"Packages-##DIST-main-i386.gz" =>
+	"Packages-##DIST-main-$arch.gz" =>
 		"$protocol://debian.crosslink.net/debian-archive".
-		"/dists/##DIST/main/binary-i386/Packages.gz",
-	"Packages-##DIST-contrib-i386.gz" =>
+		"/dists/##DIST/main/binary-$arch/Packages.gz",
+	"Packages-##DIST-contrib-$arch.gz" =>
 		"$protocol://debian.crosslink.net/debian-archive".
-		"/dists/##DIST/contrib/binary-i386/Packages.gz",
-	"Packages-##DIST-non-free-i386.gz" =>
+		"/dists/##DIST/contrib/binary-$arch/Packages.gz",
+	"Packages-##DIST-non-free-$arch.gz" =>
 		"$protocol://debian.crosslink.net/debian-archive".
-		"/dists/##DIST/non-free/binary-i386/Packages.gz",
+		"/dists/##DIST/non-free/binary-$arch/Packages.gz",
 );
-    
-
 
 
 my %urlcontents = (
-	"Contents-##DIST-i386.gz" =>
-		"$protocol://debian.usc.edu".
-		"/dists/##DIST/Contents-i386.gz",
-	"Contents-##DIST-i386-non-US.gz" =>
+	"Contents-##DIST-$arch.gz" =>
+		"$protocol://ftp.$country.debian.org".
+		"/debian/dists/##DIST/Contents-$arch.gz",
+	"Contents-##DIST-$arch-non-US.gz" =>
 		"$protocol://non-us.debian.org".
-		"/debian-non-US/dists/##DIST/non-US/Contents-i386.gz",
+		"/debian-non-US/dists/##DIST/non-US/Contents-$arch.gz",
 );
 
 my %urlpackages = (
-	"Packages-##DIST-main-i386.gz" =>
-		"$protocol://debian.usc.edu".
-		"/dists/##DIST/main/binary-i386/Packages.gz",
-	"Packages-##DIST-contrib-i386.gz" =>
-		"$protocol://debian.usc.edu".
-		"/dists/##DIST/contrib/binary-i386/Packages.gz",
-	"Packages-##DIST-non-free-i386.gz" =>
-		"$protocol://debian.usc.edu".
-		"/dists/##DIST/non-free/binary-i386/Packages.gz",
-
-# 	"Packages-##DIST-non-US-main-i386.gz" =>
-# 		"$protocol://non-us.debian.org".
-# 		"/debian-non-US/dists/##DIST/non-US/main/binary-i386/Packages.gz",
-# 	"Packages-##DIST-non-US-contrib-i386.gz" =>
-# 		"$protocol://non-us.debian.org".
-# 		"/debian-non-US/dists/##DIST/non-US/contrib/binary-i386/Packages.gz",
-# 	"Packages-##DIST-non-US-non-free-i386.gz" =>
-# 		"$protocol://non-us.debian.org".
-# 		"/debian-non-US/dists/##DIST/non-US/non-free/binary-i386/Packages.gz",
+	"Packages-##DIST-main-$arch.gz" =>
+		"$protocol://ftp.$country.debian.org".
+		"/debian/dists/##DIST/main/binary-$arch/Packages.gz",
+	"Packages-##DIST-contrib-$arch.gz" =>
+		"$protocol://ftp.$country.debian.org".
+		"/debian/dists/##DIST/contrib/binary-$arch/Packages.gz",
+	"Packages-##DIST-non-free-$arch.gz" =>
+		"$protocol://ftp.$country.debian.org".
+		"/debian/dists/##DIST/non-free/binary-$arch/Packages.gz",
 );
 
 #####################
@@ -1083,14 +1073,14 @@ sub fixDist {
     my %new;
     my ($key,$val);
     my %dist_urls;
-    
+
     if (exists $archived_dists{$dist}){
 	if ($type eq 'contents'){
 	    %dist_urls = %archiveurlcontents;
 	}
 	else {
 	    %dist_urls = %archiveurlpackages;
-	}  
+	}
     }
     else {
 	if ($type eq 'contents'){
@@ -1100,7 +1090,7 @@ sub fixDist {
 	    %dist_urls = %urlpackages;
 	}
     }
-       
+
     while (($key,$val) = each %dist_urls) {
 	$key =~ s/##DIST/$dist/;
 	$val =~	s/##DIST/$dist/;
@@ -1195,3 +1185,5 @@ sub searchDescFE {
 }
 
 1;
+
+# vim:ts=4:sw=4:expandtab:tw=80

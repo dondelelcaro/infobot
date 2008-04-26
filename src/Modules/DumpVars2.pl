@@ -32,7 +32,7 @@ sub symdumpAll {
 sub symdumpRecur {
     my $x = shift;
 
-    if (ref $x eq "HASH") {
+    if (ref $x eq 'HASH') {
 	foreach (keys %$x) {
 	    &symdumpRecur($_);
 	}
@@ -64,3 +64,5 @@ sub symdumpAllFile {
 }
 
 1;
+
+# vim:ts=4:sw=4:expandtab:tw=80

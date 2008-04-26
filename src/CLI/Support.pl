@@ -16,17 +16,17 @@ sub cliloop {
 
     $nuh = "local!local\@local";
     $uh  = "local\@local";
-    $who = "local";
-    $orig{who} = "local";
+    $who = 'local';
+    $orig{who} = 'local';
     $ident = $param{'ircUser'};
     $chan = $talkchannel = "_local";
     $addressed = 1;
     $msgType = 'private';
-    $host = "local";
+    $host = 'local';
 
     # install libterm-readline-gnu-perl to get history support
     use Term::ReadLine;
-    my $term = new Term::ReadLine 'blootbot';
+    my $term = new Term::ReadLine 'infobot';
     my $prompt = "$who> ";
     #$OUT = $term->OUT || STDOUT;
     while ( defined ($_ = $term->readline($prompt)) ) {
@@ -47,7 +47,7 @@ sub msg {
     }
 
     if (!defined $msg) {
-	$msg ||= "NULL";
+	$msg ||= 'NULL';
 	&WARN("msg: msg == $msg.");
 	return;
     }
@@ -101,3 +101,5 @@ sub performAddressedReply {
 }
 
 1;
+
+# vim:ts=4:sw=4:expandtab:tw=80

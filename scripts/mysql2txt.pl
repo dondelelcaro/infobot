@@ -18,7 +18,7 @@ if (!defined $dbname) {
 }
 
 # open the db.
-&loadConfig("files/blootbot.config");
+&loadConfig("files/infobot.config");
 &loadDBModules();
 
 &openDB($param{'DBName'}, $param{'SQLUser'}, $param{'SQLPass'});
@@ -45,3 +45,5 @@ $sth->finish;
 
 print "Done.\n";
 &closeDB();
+
+# vim:ts=4:sw=4:expandtab:tw=80
