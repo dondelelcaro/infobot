@@ -170,12 +170,15 @@ sub compress {
 
 sub DEBUG {
     return unless ( &IsParam('DEBUG') );
+    my (undef,undef,$line,$subroutine,undef) = caller(0);
 
-    &status("${b_green}!DEBUG!$ob $_[0]");
+    &status("${b_green}!DEBUG!$ob ".$subroutine.'['.$line."] $_[0]");
 }
 
 sub ERROR {
-    &status("${b_red}!ERROR!$ob $_[0]");
+    my (undef,undef,$line,$subroutine,undef) = caller(0);
+
+    &status("${b_red}!ERROR!$ob ".$subroutine.'['.$line."] $_[0]");
 }
 
 sub WARN {
@@ -183,15 +186,21 @@ sub WARN {
 
     return if ( $_[0] =~ /^PERL: Subroutine \S+ redefined at/ );
 
-    &status("${b_yellow}!WARN!$ob $_[0]");
+    my ($package,$filename,$line,$subroutine,undef) = caller(0);
+
+    &status("${b_yellow}!WARN!$ob ".$subroutine.'['.$line."] $_[0]");
 }
 
 sub FIXME {
-    &status("${b_cyan}!FIXME!$ob $_[0]");
+    my ($package,$filename,$line,$subroutine,undef) = caller(0);
+
+    &status("${b_cyan}!FIXME!$ob ".$subroutine.'['.$line."] $_[0]");
 }
 
 sub TODO {
-    &status("${b_cyan}!TODO!$ob $_[0]");
+    my ($package,$filename,$line,$subroutine,undef) = caller(0);
+
+    &status("${b_cyan}!TODO!$ob ".$subroutine.'['.$line."] $_[0]");
 }
 
 sub VERB {
