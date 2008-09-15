@@ -89,7 +89,14 @@ sub do_id($) {
     my $soap = SOAP::Lite->uri('Debbugs/SOAP/1')->
 	proxy('http://bugs.debian.org/cgi-bin/soap.cgi');
     $soap->transport->env_proxy();
-    my $result = $soap->get_status(bug => $bug_num)->result();
+    my $temp = $soap->get_status(bug => $bug_num);
+    use Data::Dumper;
+    &::DEBUG(Dumper($temp));
+    if ($temp->fault) {
+	return "Some failure (".$temp->fault->{faultstring}.")";
+    }
+    my $result = $temp->result();
+    &::DEBUG(Dumper($result));
     if (not defined $result) {
 	return "No such bug (or some kind of error)";
     }
@@ -103,7 +110,7 @@ sub do_id($) {
     $bug->{reporter} = $result->{submitter};
     $bug->{date} = $result->{date};
     $bug->{tags} = $result->{keywords};
-    $bug->{done} = defined $result->{done} and length $result->{done};
+    $bug->{done} = defined $result->{done} && length($result->{done}) > 0;
     $bug->{merged_with} = $result->{mergedwith};
     # report bug
 
