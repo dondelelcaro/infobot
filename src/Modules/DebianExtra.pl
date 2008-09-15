@@ -86,7 +86,7 @@ sub do_id($) {
         return "Bug is not a number!";
     }
     $bug_num =~ s/^\#//;
-    my $soap = SOAP::Lite->uri->('Debbugs/SOAP/1')->
+    my $soap = SOAP::Lite->uri('Debbugs/SOAP/1')->
 	proxy('http://bugs.debian.org/cgi-bin/soap.cgi');
     $soap->transport->env_proxy();
     my $result = $soap->get_status(bug => $bug_num)->result();
