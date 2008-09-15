@@ -78,7 +78,7 @@ use SOAP::Lite;
 sub do_id($) {
     my ($bug_num,$options) = @_;
 
-    $options || = {};
+    $options ||= {};
 
     if ( not $bug_num =~ /^\#?\d+$/ ) {
         warn "Bug is not a number!" and return undef
