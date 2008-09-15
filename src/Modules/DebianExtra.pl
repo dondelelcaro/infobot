@@ -101,6 +101,7 @@ sub do_id($) {
     if (not defined $result) {
 	return "No such bug (or some kind of error)";
     }
+    ($result) = values %{$result};
     my $bug = {};
     $bug->{num} = $result->{bug_num};
     $bug->{title} = $result->{subject};
