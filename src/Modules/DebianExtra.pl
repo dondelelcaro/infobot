@@ -110,7 +110,8 @@ sub do_id($) {
     $bug->{severity} =~ s/^(.).+$/$1/;
     $bug->{package} = $result->{package};
     $bug->{reporter} = $result->{submitter};
-    $bug->{date} = $result->{date};
+    use POSIX;
+    $bug->{date} = POSIX::strftime(q(%a, %d %b %Y %H:%M:%S UTC),gmtime($result->{date}));
     $bug->{tags} = $result->{keywords};
     $bug->{done} = defined $result->{done} && length($result->{done}) > 0;
     $bug->{merged_with} = $result->{mergedwith};
