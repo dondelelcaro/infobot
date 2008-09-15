@@ -91,7 +91,8 @@ sub do_id($) {
     $soap->transport->env_proxy();
     my $temp = $soap->get_status($bug_num);
     use Data::Dumper;
-    &::DEBUG(Dumper($temp));
+    # enabling this will cause amazing amounts of output
+    # &::DEBUG(Dumper($temp));
     if ($temp->fault) {
 	return "Some failure (".$temp->fault->{faultstring}.")";
     }
