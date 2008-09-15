@@ -89,7 +89,7 @@ sub do_id($) {
     my $soap = SOAP::Lite->uri('Debbugs/SOAP/1')->
 	proxy('http://bugs.debian.org/cgi-bin/soap.cgi');
     $soap->transport->env_proxy();
-    my $temp = $soap->get_status(bug => $bug_num);
+    my $temp = $soap->get_status($bug_num);
     use Data::Dumper;
     &::DEBUG(Dumper($temp));
     if ($temp->fault) {
