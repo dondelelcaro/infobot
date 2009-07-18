@@ -632,7 +632,7 @@ sub FactoidStuff {
         #	&performReply( &getRandom(keys %{ $lang{'moron'} }) );
         $count{'Moron'}++;
 
-        &performReply( "You are moron \002#" . $count{'Moron'} . "\002" );
+        &performReply( "You are person number \002# to send an unparseable request" . $count{'Moron'} . "\002" );
         return;
     }
 
