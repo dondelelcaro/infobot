@@ -117,6 +117,7 @@ sub irc {
 "Connecting to port $port of server $server ($resolve) as $mynick ..."
         );
         $args{'Nick'} = $mynick;
+        $args{'Username'} = $mynick;
         $conns{$mynick} = $irc->newconn(%args);
         if ( !defined $conns{$mynick} ) {
             &ERROR('IRC: connection failed.');
@@ -172,7 +173,7 @@ sub irc {
         $conns{$mynick}->add_global_handler( 352, \&on_who );
         $conns{$mynick}->add_global_handler( 353, \&on_names );
         $conns{$mynick}->add_global_handler( 366, \&on_endofnames );
-        $conns{$mynick}->add_global_handler( 376, \&on_endofmotd )
+        $conns{$mynick}->add_global_handler( "001", \&on_connected )
           ;    # on_connect.
         $conns{$mynick}->add_global_handler( 433, \&on_nick_taken );
         $conns{$mynick}->add_global_handler( 439, \&on_targettoofast );
@@ -522,6 +523,7 @@ sub joinchan {
     my ( $chan, $key ) = @_;
     $key ||= &getChanConf( 'chankey', $chan );
     $key ||= '';
+    my $mynick = $conn->nick();
 
     # forgot for about 2 years to implement channel keys when moving
     # over to Net::IRC...
@@ -532,7 +534,7 @@ sub joinchan {
     }
 
     #} else {
-    &status("joining $b_blue$chan $key$ob");
+    &status("$mynick joining $b_blue$chan $key$ob");
 
     return if ( $conn->join( $chan, $key ) );
     return if ( &validChan($chan) );

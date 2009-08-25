@@ -1,12 +1,49 @@
 # $Id$
 
+Q: What are factpacks and how do I install them?
+A: A factpack is a partial database of factoids that you can import into
+   your configured infobot by running the script called "factpack.pl".
+
+   # IMPORTANT: Run from the bots base directory!
+   eg: ./scripts/factpack.pl /path/to/areacodes.fact
+
+Q: Can I remove a fact pack I have installed?
+A: Yes, but at the moment, you need to manually use SQL commands in your
+   favorite SQL program. The "created_by" field in the factoids will be
+   set to the filename of the fact pack you installed. For example, if
+   you installed the "areacodes.fact" file, "created_by" would be set to
+   "areacodes.fact". The SQL to remove the above example would be:
+
+   sql> DELETE FROM factoids WHERE created_by = 'areacodes.fact';
+
+Q: Where can I download some existing fact packs?
+A: As of yet, the fact packs aren't available in SVN. You can try the
+   original infobot web site at:
+
+     http://www.infobot.org/factpacks/
+
+   NOTE: The import script can't yet handle compressed files, so you must
+   extract the factpacks in advance.
+
+Q: How can I make my own fact packs?
+A: The syntax is pretty basic. You just need a plain text file that has
+   one key/value pair per line. Comment lines begin with a "#" character
+   and are ignored, as are blank lines. Extra whitespace around key/value
+   pairs should hopefully be stripped out as well. A few example lines from
+   the areacodes.fact file:
+
+     # Sample comment here
+     area code 011 => the International Access Code
+     area code 201 => Hackensack, Morristown and Newark, New Jersey
+     area code 202 => Washington, District of Columbia
+
+
 Q: The bot exits after I run 'factstats testing' or 'kernel' or anything
    that uses fork(). Is this a bug in the bot?
 
 A: No, this is not a bug in the bot but rather Net::IRC.  A cheap hack is
    to edit /usr/lib/perl5/Net/IRC/Connection.pm, search for DESTROY, and
    comment out '$self->quit();'
-A: Apply the patches in the patches/ directory.
 
 
 Q: I notice that, in the bot logs, the bot attempts to close all current

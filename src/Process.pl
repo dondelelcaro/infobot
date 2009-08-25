@@ -26,8 +26,9 @@ sub process {
     $learnok = 1 if ($addressed);
     if ( $param{'learn'} =~ /^HUNGRY$/i ) {
         $learnok  = 1;
-        $addrchar = 1;
-        $talkok   = 1;
+        #FIXME: why can we talk if we just want to learn?
+        #$addrchar = 1;
+        #$talkok   = 1;
     }
 
     &shmFlush();                     # hack.
@@ -274,7 +275,7 @@ sub process {
     }
 
     # greetings.
-    if ( $message =~ /how (the hell )?are (ya|you)( doin\'?g?)?\?*$/ ) {
+    if ( $message =~ /how (the hell )?are (ya|you)( doin\'?g?)?\?*$/ && $talkok ) {
 
         &performReply( &getRandom( keys %{ $lang{'howareyou'} } ) );
         return;
@@ -349,7 +350,8 @@ sub process {
 
         # allow administration of bot via messages (default is DCC CHAT only)
         if ( &IsFlag('A') ) {
-            &loadMyModule('UserDCC');
+            # UserDCC.pl should autoload now from IRC/. Remove if desired
+            #&loadMyModule('UserDCC');
             $er = &userDCC();
             if ( !defined $er ) {
                 return 'SOMETHING 2';

@@ -1,5 +1,6 @@
-# Revised: 20071016
+# Revised: 20090320
 #  Author: Tim Riker <Tim@Rikers.org>
+#  Contributors: Simon C., Tim M., others (see AUTHORS)
 ###
 
 # Special entry
@@ -204,6 +205,11 @@ forget: If I have an old/redundant factoid x, "forget x" will cause me to erase 
 freshmeat: D: Frontend to www.freshmeat.net
 freshmeat: U: ## <query>
 freshmeat: E: ## infobot
+
+google: D: What Is: Google Search frontend
+google: D: Configuration: "chanset [_default or channelname] +Google"
+google: U: ## google <query>
+google: E: ## google infobot
 
 hex: D: Convert ascii to hex
 hex: U: ## <string>
@@ -480,6 +486,11 @@ useradd: E: ## SomeAccount SomeAccount!someguy@example.com
 userdel: D: Administrative command to remove a user from the .users file
 userdel: U: ## <user>
 userdel: E: ## SomeAccount
+
+verstats: D: Commnd to CTCP VERSION the specified channel for client statistics
+verstats: U: ## <channel>
+verstats: E: ## #infobot
+verstats: E: < infobot> IRC Client versions for #infobot (2): unknown/cloak - 3 (75%) ;; irssi - 1 (25%).
 
 wantnick: If someone's taken my nick (I hope not) and I'm using some temporary nick, I can change back to my original nick if it's not taken (again).
 

@@ -14,7 +14,8 @@ package babelfish;
 use strict;
 
 my $no_babelfish;
-my $url = 'http://babelfish.av.com/tr';
+#my $url = 'http://babelfish.av.com/tr';
+my $url = 'http://babelfish.yahoo.com/translate_txt';
 
 BEGIN {
     eval "use URI::Escape";    # utility functions for encoding the
@@ -73,11 +74,8 @@ sub babelfishParam {
 
     my $req = HTTP::Request->new( 'POST', $url );
 
-    # babelfish ignored this, but it SHOULD work
-    # Accept-Charset: iso-8859-1
-    #  $req->header('Accept-Charset' => 'iso-8859-1');
-    #  print $req->header('Accept-Charset');
-    $req->header( 'Accept-Language' => 'en' );
+    $req->header('Accept-Language' => 'en-us');
+    $req->header('Accept-Charset' => 'UTF-8,*');
     $req->content_type('application/x-www-form-urlencoded');
 
     return translate( $phrase, "${from}_${to}", $req, $ua );
@@ -98,27 +96,33 @@ sub translate {
     if ( $res->is_success ) {
         my $html = $res->content;
 
-        # This method subject to change with the whims of Altavista's design
-        # staff.
+        # This method subject to change with the whims of Babelfish design staff.
         ($translated) = $html;
-
-        $translated =~ s/<[^>]*>//sg;
+        # strip page head
+        $translated =~ s/.*<\/head>//sg;
+        # clean before doc-body
+        $translated =~ s/.*<div id="doc-body"[^>]*>//sg;
+        # clean after first form
+        $translated =~ s/<\/form>.*//sg;
+        # convert back to spaces
         $translated =~ s/&nbsp;/ /sg;
+        &::DEBUG("================================\n$translated\n========================\n");
+        # strip up to result
+        $translated =~ s/.*<div id="result">//sg;
+        # strip rest of page
+        $translated =~ s/<\/div.*//sg;
+        # strip all markup
+        $translated =~ s/<[^>]*>/ /sg;
+        # \n to space
+        $translated =~ s/[\n\r\t]/ /g;
+        # strip leading whitespace
+        $translated =~ s/^\s+//sg;
+        # strip trailing whitespace
+        $translated =~ s/\s+$//sg;
+        # strip multiple whitespace
         $translated =~ s/\s+/ /sg;
 
-        #&::DEBUG("$translated\n===remove <attributes>\n");
-
-        $translated =~ s/\s*Translate again.*//i;
-        &::DEBUG("$translated\n===remove after 'Translate again'\n");
-
-        $translated =~ s/[^:]*?:\s*(Help\s*)?//s;
-        &::DEBUG( "len="
-              . length($translated)
-              . " $translated\n===remove to first ':', optional Help\n" );
-
-        $translated =~ s/\n/ /g;
-
-        # FIXME: should we do unicode->iso (no. use utf8!)
+        # FIXME: any entities to utf8?
     }
     else {
         $translated = ":(";    # failure
@@ -146,20 +150,6 @@ sub babelfish {
         &::performStrictReply( &babelfishParam( lc $1, lc $2, lc $3 ) );
     }
     return;
-}
-
-if (0) {
-    if ( -t STDIN ) {
-
-#my $result = babelfish::babelfish('en sp hello world');
-#my $result = babelfish::babelfish('en sp The cheese is old and moldy, where is the bathroom?');
-        my $result =
-          babelfish::babelfish(
-            'en gr doesn\'t seem to translate things longer than 40 characters'
-          );
-        $result =~ s/; /\n/g;
-        print "Babelfish says: \"$result\"\n";
-    }
 }
 
 1;
