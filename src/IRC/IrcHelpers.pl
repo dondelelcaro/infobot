@@ -146,51 +146,57 @@ sub hookMsg {
 
     my $val = &getChanConfDefault( 'floodRepeat', '2:5', $c );
     my ( $count, $interval ) = split /:/, $val;
+    my ($count_ra,$interval_ra) = split /:/,
+	getChanConfDefault('floodRepeatAll','2:3',$c);
 
     # flood repeat protection.
     if ($addressed) {
         my $time = $flood{$floodwho}{$message} || 0;
+	my $time_ra = $flood{$floodwho}{"\0"} || 0;
 
         if (    !&IsFlag('o')
-            and $msgType eq 'public'
-            and ( time() - $time < $interval ) )
-        {
-            ### public != personal who so the below is kind of pointless.
-            my @who;
-            foreach ( keys %flood ) {
-                next if (/^\Q$floodwho\E$/);
-                next if ( defined $chan and /^\Q$chan\E$/ );
-
-                push( @who, grep /^\Q$message\E$/i, keys %{ $flood{$_} } );
-            }
-
-            return if ($lobotomized);
-
-            if ( !scalar @who ) {
-                push( @who, 'Someone' );
-            }
-            &msg( $who,
-                    join( ' ', @who )
-                  . ' already said that '
-                  . ( time - $time )
-                  . ' seconds ago' );
-
-            ### TODO: delete old floodwarn{} keys.
-            my $floodwarn = 0;
-            if ( !exists $floodwarn{$floodwho} ) {
-                $floodwarn++;
-            }
-            else {
-                $floodwarn++ if ( time() - $floodwarn{$floodwho} > $interval );
-            }
-
-            if ($floodwarn) {
-                &status("FLOOD repetition detected from $floodwho.");
-                $floodwarn{$floodwho} = time();
-            }
-
-            return;
-        }
+		and $msgType eq 'public' and ((time() - $time < $interval) or (time - $time_ra < $interval_ra))) {
+	    return if ($lobotomized);
+	    if (time() - $time < $interval ) {
+		### public != personal who so the below is kind of pointless.
+		my @who;
+		foreach ( keys %flood ) {
+		    next if (/^\Q$floodwho\E$/);
+		    next if ( defined $chan and /^\Q$chan\E$/ );
+		    
+		    push( @who, grep /^\Q$message\E$/i, keys %{ $flood{$_} } );
+		}
+		
+		
+		if ( !scalar @who ) {
+		    push( @who, 'Someone' );
+		}
+		&msg( $who,
+		      join( ' ', @who )
+		      . ' already said that '
+		      . ( time - $time )
+		      . ' seconds ago' );
+	    }
+	    else {
+		&msg($who,
+		     "You already asked me something ".(time - $time_ra). " seconds ago."
+		    );
+	    }
+	    ### TODO: delete old floodwarn{} keys.
+	    my $floodwarn = 0;
+	    if ( !exists $floodwarn{$floodwho} ) {
+		$floodwarn++;
+	    }
+	    else {
+		$floodwarn++ if ( time() - $floodwarn{$floodwho} > $interval );
+	    }
+	    
+	    if ($floodwarn) {
+		&status("FLOOD repetition detected from $floodwho.");
+		$floodwarn{$floodwho} = time();
+	    }
+	    return;
+	}
 
         if ($addrchar) {
             &status("$b_cyan$who$ob is short-addressing $mynick");
@@ -203,6 +209,7 @@ sub hookMsg {
         }
 
         $flood{$floodwho}{$message} = time();
+	$flood{$floodwho}{"\0"} = time;
     }
     elsif ( $msgType eq 'public' and &IsChanConf('kickOnRepeat') > 0 ) {
 
@@ -238,6 +245,7 @@ sub hookMsg {
         }
 
         $flood{$floodwho}{$message} = time();
+        $flood{$floodwho}{"\0"} = time();
     }
 
     my @ignore;
@@ -255,6 +263,8 @@ sub hookMsg {
         &DEBUG("unknown msgType => $msgType.");
     }
     push( @ignore, keys %{ $ignore{'*'} } ) if ( exists $ignore{'*'} );
+    my @ignore_msg = ();
+    push @ignore_msg, keys %{$ignore{'*_msg'}} if exists $ignore{'*_msg'};
 
     if (    ( !$skipmessage or &IsChanConf('seenStoreAll') > 0 )
         and &IsChanConf('sed') > 0
@@ -298,6 +308,21 @@ sub hookMsg {
         s/\*/\\S*/g;
 
         next unless ( eval { $nuh =~ /^$_$/i } );
+
+        # better to ignore an extra message than to allow one to get
+        # through, although it would be better to go through ignore
+        # checking again.
+        if ( time() - ( $cache{ignoreCheckTime} || 0 ) > 60 ) {
+            &ignoreCheck();
+        }
+
+        &status("IGNORE <$who> $message");
+        return;
+    }
+
+    for my $msg_regex (@ignore_msg) {
+
+        next unless ( eval { $message =~ /\Q$msg_regex\E/i } );
 
         # better to ignore an extra message than to allow one to get
         # through, although it would be better to go through ignore
