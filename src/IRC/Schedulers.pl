@@ -713,22 +713,26 @@ sub ignoreCheck {
 }
 
 sub ircCheck {
+    my $retval = 0;
     if (@_) {
         &ScheduleThis( 300, 'ircCheck' );    # every 5 minutes
-        return if ( $_[0] eq '2' );          # defer.
+        return $retval if ( $_[0] eq '2' );          # defer.
     }
 
     $cache{statusSafe} = 1;
+    # save current connection
+    my $saveconn = $conn;
     foreach ( sort keys %conns ) {
         $conn = $conns{$_};
-	next if (!defined $conn);
-        my $mynick = $conn->nick();
+	next if (!defined $myconn);
+        my $nick = $myconn->nick();
         &DEBUG("ircCheck for $_");
         # Display with min of 900sec delay between redisplay
         # FIXME: should only use 900sec when we are on the LAST %conns
         my @join = &getJoinChans(900);
         if ( scalar @join ) {
-            &FIXME( 'ircCheck: found channels to join! ' . join( ',', @join ) );
+            &FIXME( 'ircCheck: found ' . scalar @join . 'channels to join! ' . join( ',', @join ) );
+            $retval += scalar @join;
             &joinNextChan();
         }
 
@@ -751,6 +755,8 @@ sub ircCheck {
             }
         }
     }
+    # restore connection we were called from
+    $conn = $saveconn;
 
     if ( grep /^\s*$/, keys %channels ) {
         &WARN('ircCheck: we have a NULL chan in hash channels? removing!');
@@ -776,17 +782,16 @@ sub ircCheck {
     $cache{statusSafe} = 0;
 
     ### USER FILE.
-    if ( $utime_userfile > $wtime_userfile and time() - $wtime_userfile > 3600 )
-    {
+    if ($utime_userfile > $wtime_userfile and time() - $wtime_userfile > 3600) {
         &writeUserFile();
         $wtime_userfile = time();
     }
     ### CHAN FILE.
-    if ( $utime_chanfile > $wtime_chanfile and time() - $wtime_chanfile > 3600 )
-    {
+    if ($utime_chanfile > $wtime_chanfile and time() - $wtime_chanfile > 3600) {
         &writeChanFile();
         $wtime_chanfile = time();
     }
+    return $retval;
 }
 
 sub miscCheck {

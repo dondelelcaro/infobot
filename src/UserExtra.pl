@@ -21,7 +21,6 @@ sub chaninfo {
 
     if ( $chan eq '' ) {    # all channels.
         my $i = keys %channels;
-        my $reply = "I'm on \002$i\002 " . &fixPlural( 'channel', $i );
         my $tucount = 0;    # total user count.
         my $uucount = 0;    # unique user count.
         my %chans;
@@ -42,7 +41,6 @@ sub chaninfo {
         foreach $chan ( sort { $chans{$b} <=> $chans{$a} } keys %chans ) {
             push( @array, "$chan/" . $chans{$chan} );
         }
-        &performStrictReply( $reply . ': ' . join( ', ', @array ) );
 
         ### total user count.
         foreach $chan ( keys %channels ) {
@@ -60,14 +58,12 @@ sub chaninfo {
         $uucount = scalar( keys %nicks );
 
         my $chans = scalar( keys %channels );
-        &performStrictReply( "i've cached \002$tucount\002 "
-              . &fixPlural( 'user', $tucount )
-              . ", \002$uucount\002 unique "
-              . &fixPlural( 'user', $uucount )
-              . ", distributed over \002$chans\002 "
-              . &fixPlural( 'channel', $chans )
-              . '.' );
-        &ircCheck();
+        my $join = &ircCheck();
+        &performStrictReply(
+              "\002$chans/".($chans+$join)."\002 " . &fixPlural('channel', $chans)
+              . ", \002$tucount\002 " . &fixPlural('user', $tucount)
+              . ", \002$uucount\002 unique: "
+              . join(', ', @array));
 
         return;
     }

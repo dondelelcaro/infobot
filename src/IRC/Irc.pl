@@ -905,9 +905,9 @@ sub getJoinChans {
     # Display 'Chans:' only if more than $show seconds since last display
     if ( time() - $lastChansTime > $show ) {
         $lastChansTime = time();
-    }
-    else {
-        $show = 0;    # Don't display since < 15min since last
+    } else {
+	# Don't display since < 15min since last
+        $show = 0;
     }
 
     # can't join any if not connected
@@ -930,28 +930,25 @@ sub getJoinChans {
                 $chanconf{$_}{autojoin} = $val;
             }
             $skip++ if ( lc $val ne lc $nick );
-        }
-        else {
+        } else {
             $skip++;
         }
 
         if ($skip) {
             push( @skip, $_ );
-        }
-        else {
+        } else {
             if ( defined $channels{$_} or exists $channels{$_} ) {
                 push( @in, $_ );
-            }
-            else {
+            } else {
                 push( @join, $_ );
             }
         }
     }
 
     my $str;
-    $str .= ' in:' . join( ',',   sort @in )   if scalar @in;
-    $str .= ' skip:' . join( ',', sort @skip ) if scalar @skip;
     $str .= ' join:' . join( ',', sort @join ) if scalar @join;
+    $str .= ' in:' . join( ',',   sort @in )   if scalar @in;
+    $str .= ' skip:' . scalar @skip if scalar @skip;
 
     &status("Chans: ($nick)$str") if ($show);
 
