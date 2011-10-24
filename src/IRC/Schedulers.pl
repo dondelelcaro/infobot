@@ -724,8 +724,8 @@ sub ircCheck {
     my $saveconn = $conn;
     foreach ( sort keys %conns ) {
         $conn = $conns{$_};
-	next if (!defined $myconn);
-        my $nick = $myconn->nick();
+	next if (!defined $conn);
+        my $nick = $conn->nick();
         &DEBUG("ircCheck for $_");
         # Display with min of 900sec delay between redisplay
         # FIXME: should only use 900sec when we are on the LAST %conns
