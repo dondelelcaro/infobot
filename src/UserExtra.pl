@@ -37,14 +37,11 @@ sub chaninfo {
             next if (/^_default$/);
 
             $chans{$_} = scalar( keys %{ $channels{$_}{''} } );
+            ### total user count.
+            $tucount += scalar( keys %{ $channels{$_}{''} } );
         }
         foreach $chan ( sort { $chans{$b} <=> $chans{$a} } keys %chans ) {
             push( @array, "$chan/" . $chans{$chan} );
-        }
-
-        ### total user count.
-        foreach $chan ( keys %channels ) {
-            $tucount += scalar( keys %{ $channels{$chan}{''} } );
         }
 
         ### unique user count.
@@ -57,7 +54,7 @@ sub chaninfo {
         }
         $uucount = scalar( keys %nicks );
 
-        my $chans = scalar( keys %channels );
+        my $chans = scalar( keys %chans );
         my $join = &ircCheck();
         &performStrictReply(
               "\002$chans/".($chans+$join)."\002 " . &fixPlural('channel', $chans)
@@ -175,10 +172,10 @@ sub conninfo {
     my $key;
     foreach $key ( sort keys %::conns ) {
         my $myconn = $::conns{$key};
-	$reply .= " $key/";
-	next if (!defined $myconn);
+        $reply .= " $key/";
+        next if (!defined $myconn);
         my $mynick = $myconn->nick();
-	$reply .= "$mynick";
+        $reply .= "$mynick";
     }
     &performStrictReply( "conninfo: $reply.");
 }
@@ -281,8 +278,8 @@ sub tell {
 
     # 'intrusive'.
     #    if ($target !~ /^$mask{chan}$/ and !&IsNickInAnyChan($target)) {
-    #	&msg($who, "No, $target is not in any of my chans.");
-    #	return;
+    #        &msg($who, "No, $target is not in any of my chans.");
+    #        return;
     #    }
 
     # self.
@@ -393,7 +390,7 @@ sub do_countrystats {
     foreach ( sort { $b <=> $a } keys %count ) {
         my $str = join( ', ', sort keys %{ $count{$_} } );
 
-        #	push(@list, "$str ($_)");
+        #push(@list, "$str ($_)");
         my $perc = sprintf( '%.01f', 100 * $_ / $total );
         $perc =~ s/\.0+$//;
         push( @list, "$str ($_, $perc %)" );
@@ -514,7 +511,7 @@ sub userCommands {
 
         &msg( $chan, "I'm coming back. (courtesy of $who)" );
         &part($chan);
-###	&ScheduleThis(5, 'getNickInUse') if (@_);
+        #&ScheduleThis(5, 'getNickInUse') if (@_);
         &status("Schedule rejoin in 5secs to $chan by $who.");
         $conn->schedule( 5, sub { &joinchan($chan); } );
 
