@@ -463,8 +463,10 @@ sub on_endofnames {
 
     &chanServCheck($chan);
 
+    # FIXME: scheduler is b0rken! flood join for now
     # schedule used to solve ircu (OPN) 'target too fast' problems.
-    $conn->schedule( 5, sub { &joinNextChan(); } );
+    #$conn->schedule( 5, sub { &joinNextChan(); } );
+    &joinNextChan();
 }
 
 sub on_init {
