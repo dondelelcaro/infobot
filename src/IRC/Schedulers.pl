@@ -731,7 +731,7 @@ sub ircCheck {
         # FIXME: should only use 900sec when we are on the LAST %conns
         my @join = &getJoinChans(900);
         if ( scalar @join ) {
-            &FIXME( 'ircCheck: found ' . scalar @join . 'channels to join! ' . join( ',', @join ) );
+            &FIXME( 'ircCheck: found ' . scalar @join . ' channels to join! ' . join( ',', @join ) );
             $retval += scalar @join;
             &joinNextChan();
         }
