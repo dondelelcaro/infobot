@@ -108,6 +108,7 @@ sub irc {
     );
     $args{'LocalAddr'} = $param{'ircHost'}   if ( $param{'ircHost'} );
     $args{'Password'}  = $param{'ircPasswd'} if ( $param{'ircPasswd'} );
+    $args{'SSL'}  = $param{'ircSSL'} if ( $param{'ircSSL'} );
 
     foreach my $mynick ( sort split ',', $param{'ircNick'} ) {
 	if (!defined $conns{$mynick}) {
