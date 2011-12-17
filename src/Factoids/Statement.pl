@@ -116,16 +116,14 @@ sub doStatement {
         # verify the update statement whether there are any weird
         # characters.
         ### this can be simplified.
-        foreach ( split //, $lhs . $rhs ) {
-            my $ord = ord $_;
-            if ( $ord > 170 and $ord < 220 ) {
-                &status("statement: illegal character '$_' $ord.");
+        for my $temp ($lhs,$rhs ) {
+	    if ($temp =~ /([^[:print:]])/) {
+		&status("statement: illegal character '$1' ".ord($1).".");
                 &performAddressedReply(
                     "i'm not going to learn illegal characters");
                 return;
             }
         }
-
         # success.
         return if ( &update( $lhs, $mhs, $rhs ) );
     }
