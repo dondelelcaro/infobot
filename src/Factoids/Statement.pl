@@ -15,6 +15,8 @@
 
 # use strict;	# TODO
 
+use Encode qw(decode_utf8);
+
 sub doStatement {
     my ($in) = @_;
 
