@@ -117,7 +117,8 @@ sub doStatement {
         # characters.
         ### this can be simplified.
         for my $temp ($lhs,$rhs ) {
-	    if ($temp =~ /([^[:print:]])/) {
+	    $temp = decode_utf8($temp);
+	    if ($temp =~ /([^[:print:]])/ or $temp =~ /\N{U+FFFD}/) {
 		&status("statement: illegal character '$1' ".ord($1).".");
                 &performAddressedReply(
                     "i'm not going to learn illegal characters");
