@@ -14,7 +14,7 @@ sub update {
     my ( $lhs, $mhs, $rhs ) = @_;
 
     my $lhs_utf8 = decode_utf8($lhs);
-    my $rhs_utf8 = decode_utf8($rhs_utf8);
+    my $rhs_utf8 = decode_utf8($rhs);
 
     $lhs_utf8 =~ s/^i (heard|think) //i;
     $lhs_utf8 =~ s/^some(one|1|body) said //i;
