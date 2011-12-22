@@ -8,20 +8,35 @@
 
 # use strict;	# TODO
 
+use Encode qw(decode_utf8 encode_utf8);
+
 sub update {
     my ( $lhs, $mhs, $rhs ) = @_;
 
-    for ($lhs) {
-        s/^i (heard|think) //i;
-        s/^some(one|1|body) said //i;
-        s/\s+/ /g;
+    my $lhs_utf8 = decode_utf8($lhs);
+    my $rhs_utf8 = decode_utf8($rhs_utf8);
+
+    $lhs_utf8 =~ s/^i (heard|think) //i;
+    $lhs_utf8 =~ s/^some(one|1|body) said //i;
+    $lhs_utf8 =~ s/\s+/ /g;
+
+    for my $temp ($lhs_utf8,$rhs_utf8 ) {
+	if ($temp =~ /([^[:print:]])/ or $temp =~ /(\N{U+FFFD})/) {
+	    &status("statement: illegal character '$1' ".ord($1).".");
+	    &performAddressedReply(
+		 "i'm not going to learn illegal characters");
+	    return;
+	}
     }
+    # update rhs and lhs
+    $rhs = encode_utf8($rhs_utf8);
+    $lhs = encode_utf8($lhs_utf8);
 
     # locked.
     return if ( &IsLocked($lhs) == 1 );
 
     # profanity.
-    if ( &IsParam('profanityCheck') and &hasProfanity($rhs) ) {
+    if ( &IsParam('profanityCheck') and &hasProfanity($rhs_utf8) ) {
         &performReply("please, watch your language.");
         return 1;
     }
@@ -49,8 +64,11 @@ sub update {
     }
 
     # also checking.
-    my $also = ( $rhs =~ s/^-?also //i );
-    my $also_or = ( $also and $rhs =~ s/\s+(or|\|\|)\s+// );
+    my $also = ( $rhs_utf8 =~ s/^-?also //i );
+    my $also_or = ( $also and $rhs_utf8 =~ s/\s+(or|\|\|)\s+// );
+    # update rhs and lhs
+    $rhs = encode_utf8($rhs_utf8);
+    $lhs = encode_utf8($lhs_utf8);
 
     if ( $also or $also_or ) {
         my $author = &getFactInfo( $from, 'created_by' );
@@ -79,15 +97,15 @@ sub update {
 
     # factoid arguments handler.
     # must start with a non-variable
-    if ( &IsChanConf('factoidArguments') > 0 and $lhs =~ /^[^\$]+.*\$/ ) {
+    if ( &IsChanConf('factoidArguments') > 0 and $lhs_utf8 =~ /^[^\$]+.*\$/ ) {
         &status("Update: Factoid Arguments found.");
         &status("Update: orig lhs => '$lhs'.");
         &status("Update: orig rhs => '$rhs'.");
 
         my @list;
         my $count = 0;
-        $lhs =~ s/^/cmd: /;
-        while ( $lhs =~ s/\$(\S+)/(.*?)/ ) {
+        $lhs_utf8 =~ s/^/cmd: /;
+        while ( $lhs_utf8 =~ s/\$(\S+)/(.*?)/ ) {
             push( @list, "\$$1" );
             $count++;
             last if ( $count >= 10 );
@@ -100,22 +118,29 @@ sub update {
         }
 
         my $z = join( ',', @list );
-        $rhs =~ s/^/($z): /;
+        $rhs_utf8 =~ s/^/($z): /;
+	# update rhs and lhs
+	$rhs = encode_utf8($rhs_utf8);
+	$lhs = encode_utf8($lhs_utf8);
 
         &status("Update: new lhs => '$lhs' rhs => '$rhs'.");
     }
 
     # the fun begins.
     my $exists = &getFactoid($lhs);
+    my $exists_utf8 = decode_utf8($exists);
 
     if ( !$exists ) {
 
         # nice 'are' hack (or work-around).
-        if ( $mhs =~ /^are$/i and $rhs !~ /<\S+>/ ) {
+        if ( $mhs =~ /^are$/i and $rhs_utf8 !~ /<\S+>/ ) {
             &status("Update: 'are' hack detected.");
             $mhs = 'is';
-            $rhs = "<REPLY> are " . $rhs;
+            $rhs_utf8 = "<REPLY> are " . $rhs_utf8;
         }
+	# update rhs and lhs
+	$rhs = encode_utf8($rhs_utf8);
+	$lhs = encode_utf8($lhs_utf8);
 
         &status("enter: <$who> \'$lhs\' =$mhs=> \'$rhs\'");
         $count{'Update'}++;
@@ -152,7 +177,8 @@ sub update {
     if ($also) {    # 'is also'.
         my $redircount = 5;
         my $origlhs    = $lhs;
-        while ( $exists =~ /^<REPLY> ?see (.*)/i ) {
+	my $origlhs_utf8 = $lhs_utf8;
+        while ( $exists_utf8 =~ /^<REPLY> ?see (.*)/i ) {
             $redircount--;
             unless ($redircount) {
                 &msg( $who, "$origlhs has too many levels of redirection." );
@@ -165,18 +191,18 @@ sub update {
                 &msg( $who, "$1 is a dangling redirection." );
                 return 1;
             }
-        }
-        if ( $exists =~ /^<REPLY> ?see (.*)/i ) {
-            &TODO("Update.pl: append to linked factoid.");
+	    $exists_utf8 = decode_utf8($exists);
         }
 
         if ($also_or) {    # 'is also ||'.
-            $rhs = $exists . ' || ' . $rhs;
+            $rhs_utf8 = $exists . ' || ' . $rhs_utf8;
+	    $rhs = encode_utf8($rhs_utf8);
+	    $lhs = encode_utf8($lhs_utf8);
         }
         else {
 
             #	    if ($exists =~ s/\,\s*$/,  /) {
-            if ( $exists =~ /\,\s*$/ ) {
+            if ( $exists_utf8 =~ /\,\s*$/ ) {
                 &DEBUG("current has trailing comma, just append as is");
                 &DEBUG("Up: exists => $exists");
                 &DEBUG("Up: rhs    => $rhs");
@@ -185,7 +211,7 @@ sub update {
                 # $rhs = $exists." ".$rhs;	# keep comma.
             }
 
-            if ( $exists =~ /\.\s*$/ ) {
+            if ( $exists_utf8 =~ /\.\s*$/ ) {
                 &DEBUG(
                     "current has trailing period, just append as is with 2 WS");
                 &DEBUG("Up: exists => $exists");
@@ -196,16 +222,16 @@ sub update {
                 # $rhs = $exists."  ".$rhs;	# keep comma.
             }
 
-            if ( $rhs =~ /^[A-Z]/ ) {
-                if ( $rhs =~ /\w+\s*$/ ) {
+            if ( $rhs_utf8 =~ /^[A-Z]/ ) {
+                if ( $rhs_utf8 =~ /\w+\s*$/ ) {
                     &status("auto insert period to factoid.");
-                    $rhs = $exists . ".  " . $rhs;
+                    $rhs_utf8 = $exists_utf8 . ". " . $rhs_utf8;
                 }
                 else {    # '?' or '.' assumed at end.
                     &status(
 "orig factoid already had trailing symbol; not adding period."
                     );
-                    $rhs = $exists . "  " . $rhs;
+                    $rhs_utf8 = $exists_utf8 . " " . $rhs_utf8;
                 }
             }
             elsif ( $exists =~ /[\,\.\-]\s*$/ ) {
@@ -213,20 +239,21 @@ sub update {
 "U: current has trailing symbols; inserting whitespace + new.",
                     2
                 );
-                $rhs = $exists . " " . $rhs;
+		$rhs_utf8 = $exists_utf8 . " " . $rhs_utf8;
             }
-            elsif ( $rhs =~ /^\./ ) {
-                &VERB( "U: new text has ^.; appending directly", 2 );
-                $rhs = $exists . $rhs;
+            elsif ( $rhs_utf8 =~ /^\./ ) {
+                &VERB( "U: new text starts with period; appending directly", 2 );
+		$rhs_utf8 = $exists_utf8 . $rhs_utf8;
             }
             else {
-                $rhs = $exists . ', or ' . $rhs;
+		$rhs_utf8 = $exists_utf8 . ', or ' . $rhs_utf8;
             }
+	    $rhs = encode_utf8($rhs_utf8);
         }
 
         # max length check again.
         if ( length $rhs > $param{'maxDataSize'} ) {
-            if ( length $rhs > length $exists ) {
+            if ( length $rhs_utf8 > length $exists_utf8 ) {
                 &performAddressedReply("that's too long");
                 return 1;
             }
@@ -236,6 +263,9 @@ sub update {
                 );
             }
         }
+	$rhs = encode_utf8($rhs_utf8);
+	$lhs = encode_utf8($lhs_utf8);
+	$exists = encode_utf8($exists_utf8);
 
         &performAddressedReply('okay');
 

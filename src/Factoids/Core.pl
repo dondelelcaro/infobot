@@ -11,6 +11,8 @@ use vars qw(%param %cache %lang %cmdstats %bots);
 use vars qw($message $who $addressed $chan $h $nuh $ident $msgType
   $correction_plausable);
 
+use Encode qw(decode_utf8 encode_utf8);
+
 # Usage: &validFactoid($lhs,$rhs);
 sub validFactoid {
     my ( $lhs, $rhs ) = @_;
@@ -466,7 +468,8 @@ sub FactoidStuff {
     }
 
     # factoid substitution. (X =~ s/A/B/FLAG)
-    if ( $message =~ m|^(.*?)\s+=~\s+s([/,#])(.+?)\2(.*?)\2([a-z]*);?\s*$| ) {
+    my $message_utf8 = decode_utf8($message);
+    if ( $message_utf8 =~ m|^(.*?)\s+=~\s+s([/,#])(.+?)\2(.*?)\2([a-z]*);?\s*$| ) {
         my ( $faqtoid, $delim, $op, $np, $flags ) = ( lc $1, $2, $3, $4, $5 );
         return 'subst: no addr' unless ($addressed);
 
@@ -479,10 +482,11 @@ sub FactoidStuff {
         }
 
         # success.
-        if ( my $result = &getFactoid($faqtoid) ) {
-            return 'subst: locked' if ( &IsLocked($faqtoid) == 1 );
+        if ( my $result = &getFactoid(encode_utf8($faqtoid)) ) {
+            return 'subst: locked' if ( &IsLocked(encode_utf8($faqtoid)) == 1 );
             my $was = $result;
-            my $faqauth = &getFactInfo( $faqtoid, 'created_by' );
+	    $result = decode_utf8($result);
+            my $faqauth = &getFactInfo( encode_utf8($faqtoid), 'created_by' );
 
             if ( ( $flags eq 'g' && $result =~ s/\Q$op/$np/gi )
                 || $result =~ s/\Q$op/$np/i )
@@ -512,7 +516,7 @@ sub FactoidStuff {
                 }
 
                 # excessive length.
-                if ( length $result > $param{'maxDataSize'} ) {
+                if ( length encode_utf8($result) > $param{'maxDataSize'} ) {
                     &performReply("that's too long");
                     return;
                 }
@@ -532,16 +536,16 @@ sub FactoidStuff {
                     &performReply("too drastic change of factoid.");
                 }
 
-                &setFactInfo( $faqtoid, 'factoid_value', $result );
-                &status("update: '$faqtoid' =is=> '$result'; was '$was'");
+                &setFactInfo( encode_utf8($faqtoid), 'factoid_value', encode_utf8($result) );
+                &status("update: '".encode_utf8($faqtoid)."' =is=> '".encode_utf8($result)."'; was '$was'");
                 &performReply('OK');
             }
             else {
-                &performReply("that doesn't contain '$op'");
+                &performReply("that doesn't contain '".encode_utf8($op)."'");
             }
         }
         else {
-            &performReply("i didn't have anything called '$faqtoid' to modify");
+            &performReply("i didn't have anything called '".encode_utf8($faqtoid)."' to modify");
         }
 
         return;
@@ -590,6 +594,7 @@ sub FactoidStuff {
     }
 
     my $result = &doQuestion($question);
+    &::DEBUG("question:$question:returned:".(defined $result?$result:'undef'));
     if ( !defined $result or $result eq $noreply ) {
         return 'result from doQ undef.';
     }
