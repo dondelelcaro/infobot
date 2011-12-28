@@ -34,9 +34,9 @@ use POSIX qw(strftime);
 
 # Comment out the "table" assignment to use the plain version
 
-#my $STYLE		=	"tt";
-#my $STYLE		=	"simplett";
-#my $STYLE		=	"table";
+#my $STYLE = "tt";
+#my $STYLE = "simplett";
+#my $STYLE = "table";
 my $STYLE = "simpletable";
 
 my $colour_left       = "#000099";    # nick leaving channel
@@ -62,10 +62,10 @@ sub header {
       qq{<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-	<title>irclog2html for $channel on $date</title>
-	<meta name="generator" content="irclog2html.pl by Jeff Waugh">
-	<meta name="version" content="Version 1.5 - 11th May 2000">
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+ <title>irclog2html for $channel on $date</title>
+ <meta name="generator" content="irclog2html.pl by Jeff Waugh">
+ <meta name="version" content="Version 1.5 - 11th May 2000">
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 </head>
 <body text="#000000" bgcolor="#ffffff">
 <h1>irclog2html for $channel on $date</h1>
@@ -284,14 +284,32 @@ sub main {
                     # new nick
                     $nickcount++;
 
-              # if we've exceeded our estimate of the number of nicks, double it
+                    # if we've exceeded our estimate of the number of nicks, double it
                     $NICKMAX *= 2 if $nickcount >= $NICKMAX;
 
                     $htmlcolour = $colour_nick{$nick} =
                       html_rgb( $nickcount, $NICKMAX );
                 }
-                output_timenicktext( $date, $time, $channel, $nick, $text,
-                    $htmlcolour );
+                output_timenicktext( $date, $time, $channel, $nick, $text, $htmlcolour );
+            }
+            elsif ( $line =~ /^\* ([^ \/]+)\/(\#[^ ]+) (.+)/ ) {
+                # Colourise the /me's #
+                $nick=$1;
+                $channel=$2;
+                $text="<font color=\"$colour_action\">$3</font>";
+                $htmlcolour = $colour_nick{$nick};
+                if ( !defined($htmlcolour) ) {
+
+                    # new nick
+                    $nickcount++;
+
+                    # if we've exceeded our estimate of the number of nicks, double it
+                    $NICKMAX *= 2 if $nickcount >= $NICKMAX;
+
+                    $htmlcolour = $colour_nick{$nick} =
+                      html_rgb( $nickcount, $NICKMAX );
+                }
+                output_timenicktext( $date, $time, $channel, $nick, $text, $htmlcolour );
             }
             elsif ( $line =~ /^&gt\;&gt\;&gt\; / ) {
                 $line =~ s/^&gt\;&gt\;&gt\; /\*\*\* /;
@@ -309,8 +327,7 @@ sub main {
                     $colour_nick{$nick_new} = $colour_nick{$nick_old};
                     $colour_nick{$nick_old} = undef;
 
-                    $line =~
-s/(\*\*\* .*)/<font color=\"$colour_nickchange\">$1<\/font>/;
+                    $line =~ s/(\*\*\* .*)/<font color=\"$colour_nickchange\">$1<\/font>/;
                 }
                 elsif ( $line =~ /\*\*\* (join|mode|topic)\/(.*?) .*/ ) {
                     $channel = lc $2;
