@@ -14,6 +14,7 @@ use vars qw($bot_base_dir $bot_src_dir $bot_misc_dir $bot_state_dir
 # ancient Perl may not like these, but modern systems should have this
 use open ':utf8';
 use open ':std';
+use Encode qw( decode FB_QUIET );
 
 BEGIN {
     if ( @ARGV and -f $ARGV[0] ) {
