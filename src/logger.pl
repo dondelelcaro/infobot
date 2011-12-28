@@ -112,9 +112,15 @@ sub openLog {
 
     if ( &IsParam('logType') and $param{'logType'} =~ /DAILY/i ) {
         my ( $day, $month, $year ) = ( gmtime time() )[ 3, 4, 5 ];
-        $logDate = sprintf( '%04d%02d%02d', $year + 1900, $month + 1, $day );
+        $logDate = sprintf('%04d/%02d%02d', $year + 1900, $month + 1, $day);
         $file{log} .= $logDate;
+	my $logDir = $file{log} . sprintf('%04d', $year + 1900);
+        unless(-d $logDir) {
+            &status("openLog: making $logDir.");
+            mkdir $logDir, 0755 or &status("Cannot mkdir $logDir");;
+        }
     }
+
 
     if ( open( LOG, ">>$file{log}" ) ) {
         binmode( LOG, ':encoding(UTF-8)' );
@@ -137,33 +143,33 @@ sub closeLog {
 }
 
 #####
-# Usage: &compress($file);
-sub compress {
+# Usage: &processLog($file);
+sub processLog {
     my ($file) = @_;
-    my @compress = ( '/usr/bin/bzip2', '/bin/bzip2', '/bin/gzip' );
+    my @processLog = ( 'scripts/processlog', '/usr/bin/bzip2', '/bin/bzip2', '/bin/gzip' );
     my $okay = 0;
 
     if ( !-f $file ) {
-        &WARN("compress: file ($file) does not exist.");
+        &WARN("processLog: file ($file) does not exist.");
         return 0;
     }
 
     if ( -f "$file.gz" or -f "$file.bz2" ) {
-        &WARN('compress: file.(gz|bz2) already exists.');
+        &WARN('processLog: file.(gz|bz2) already exists.');
         return 0;
     }
 
-    foreach (@compress) {
+    foreach (@processLog) {
         next unless ( -x $_ );
 
-        &status("Compressing '$file' with $_.");
+        &status("Processing log '$file' with $_.");
         system("$_ $file &");
         $okay++;
         last;
     }
 
     if ( !$okay ) {
-        &ERROR('no compress program found.');
+        &ERROR('no processLog program found.');
         return 0;
     }
 
@@ -402,10 +408,10 @@ sub status {
 
         my ( $day, $month, $year ) = ( gmtime $time )[ 3, 4, 5 ];
         my $newlogDate =
-          sprintf( '%04d%02d%02d', $year + 1900, $month + 1, $day );
+          sprintf( '%04d/%02d%02d', $year + 1900, $month + 1, $day );
         if ( defined $logDate and $newlogDate != $logDate ) {
             &closeLog();
-            &compress( $file{log} );
+            &processLog( $file{log} );
             &openLog();
         }
     }
