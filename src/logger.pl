@@ -112,13 +112,13 @@ sub openLog {
 
     if ( &IsParam('logType') and $param{'logType'} =~ /DAILY/i ) {
         my ( $day, $month, $year ) = ( gmtime time() )[ 3, 4, 5 ];
-        $logDate = sprintf('%04d/%02d%02d', $year + 1900, $month + 1, $day);
-        $file{log} .= $logDate;
 	my $logDir = $file{log} . sprintf('%04d', $year + 1900);
         unless(-d $logDir) {
             &status("openLog: making $logDir.");
             mkdir $logDir, 0755 or &status("Cannot mkdir $logDir");;
         }
+        $logDate = sprintf('%04d/%02d%02d', $year + 1900, $month + 1, $day);
+        $file{log} .= $logDate;
     }
 
 
