@@ -409,7 +409,7 @@ sub status {
         my ( $day, $month, $year ) = ( gmtime $time )[ 3, 4, 5 ];
         my $newlogDate =
           sprintf( '%04d/%02d%02d', $year + 1900, $month + 1, $day );
-        if ( defined $logDate and $newlogDate != $logDate ) {
+        if ( defined $logDate and $newlogDate ne $logDate ) {
             &closeLog();
             &processLog( $file{log} );
             &openLog();
