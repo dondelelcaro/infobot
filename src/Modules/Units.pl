@@ -15,7 +15,7 @@ sub convertUnits {
     }
 
     my $units = new IO::File;
-    open $units, '-|', 'units', $from, $to
+    open $units, '-|', 'units', '--', $from, $to
       or &::DEBUG("Unable to run units: $!")
       and return;
     my $response = readline($units);
