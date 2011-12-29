@@ -86,7 +86,7 @@ contents: E: ## x11amp potato
 
 convert: D: Convert from one unit to another
 convert: U: ## [number] <units> to <units>
-convert: E: ## 55 degF to degC
+convert: E: ## 55 tempF to tempC
 convert: E: ## 60 mph to kph
 convert: E: ## 60 miles per hour to km/hour
 convert: E: ## gallons to cm^3
