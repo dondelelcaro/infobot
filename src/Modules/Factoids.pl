@@ -22,10 +22,10 @@ sub CmdFactInfo {
         return;
     }
 
-	if (&hasFlag('o')) {
-		# ops can see deleted faq info
-		$faqtoid=~s/#del#/#DEL#/;
-	}
+    if (&hasFlag('o')) {
+        # ops can see deleted faq info
+        $faqtoid=~s/#del#/#DEL#/;
+    }
     my %factinfo =
       &sqlSelectRowHash( 'factoids', '*', { factoid_key => $faqtoid } );
 
