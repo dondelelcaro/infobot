@@ -112,7 +112,11 @@ sub hookMsg {
             }
         }
 
-        if ( $message =~ /^($mask{nick})([\;\:\>\, ]+) */ ) {
+        my $nick_postfix_re = '[\;\:\>\, ]+';
+        if (getChanConf('exactAddress',0,$chan)) {
+            $nick_postfix_re = '[\;\:\>\,] '
+        }
+        if ( $message =~ /^($mask{nick})($nick_postfix_re) */ ) {
             my $newmessage = $';
             if ( $1 =~ /^\Q$mynick\E$/i ) {
                 $message   = $newmessage;
