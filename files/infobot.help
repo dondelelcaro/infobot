@@ -126,6 +126,11 @@ dfind: U: ## <string> [dist]
 dfind: E: ## strings.h
 dfind: E: ## x11amp potato
 
+dice: D: simulate dice rolls using I<a>dI<b>[+-*/b]I<c>
+dice: U: ## <dice>
+dice: E: ## 3d6
+dice: E: ## 4d10+12
+
 dict: D: DICT Protocol Client - likely dicts: elements web1913 wn gazetteer jargon foldoc easton hitchcock devils world02 vera
 dict: U: ## [entry num] <query>[/dict]
 dict: E: ## linux
