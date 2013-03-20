@@ -54,7 +54,6 @@ _default
     addressCharacter ~
     +allowConv
     +allowTelling
-    +babelfish
     +botmail
     +case
     +cookie
@@ -100,6 +99,7 @@ _default
     +slashdot
     +spell
     +tell
+    +translate
     +upsidedown
     +verstats
     +wikipedia

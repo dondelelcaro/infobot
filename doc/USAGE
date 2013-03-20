@@ -438,13 +438,13 @@ Example:
                                MODULE COMMANDS
                     ======================================
 
-Command: babelfish
+Command: countdown
 =============
 Description:
 	...
 
 Usage:
-	x from [language]: phrase
+	countdown ...
 
 Example:
 	...
@@ -642,13 +642,13 @@ Example:
 	...
 
 
-Command: countdown
+Command: translate
 =============
 Description:
 	...
 
 Usage:
-	countdown ...
+	x from [language]: phrase
 
 Example:
 	...

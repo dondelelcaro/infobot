@@ -14,11 +14,6 @@ alternation: The || symbol in an entry causes an infobot to choose one of the re
 
 author: oznoid (mailto:lenzo@ri.cmu.edu) is my original author.
 
-babelfish: D: Frontend to babelfish translating service provided by http://babelfish.altavista.com/ Note that utf8 is used for non-ascii characters.
-babelfish: U: x <fromLang> <toLang> <words>
-babelfish: U: translate <fromLang> <toLang> <words>
-babelfish: E: x en de your cars rock
-
 bandel: D: FIXME:
 bandel: U: ## <mask|user>
 bandel: E: ## *!*@owns.org
@@ -475,6 +470,11 @@ topic:   help           - This screen.
 topic: NOTE: #chan arg is only required if command is sent over private message to nick, otherwise it is not needed if sent to the channel.
 topic: NOTE: commands can be preceeded? with '-' in order not to enforce changes to topic.
 topic: End of help.
+
+translate: D: Frontend to Google Translate. Note that utf8 is used for non-ascii characters.
+translate: U: x <fromLang> <toLang> <words>
+translate: U: translate <fromLang> <toLang> <words>
+translate: E: x en de your cars rock
 
 uc: D: upper case a given string
 uc: U: ## <string>

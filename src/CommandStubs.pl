@@ -785,7 +785,7 @@ sub do_text_counters {
 ###
 ### START ADDING HOOKS.
 ###
-&addCmdHook('(babel(fish)?|x|xlate|translate)', ('CODEREF' => 'babelfish::babelfish', 'Identifier' => 'babelfish', 'Cmdstats' => 'babelfish', 'Forker' => 1, 'Help' => 'babelfish', 'Module' => 'babelfish') );
+&addCmdHook('(x|xlate|translate)', ('CODEREF' => 'translate::translate', 'Identifier' => 'translate', 'Cmdstats' => 'translate', 'Forker' => 1, 'Help' => 'translate', 'Module' => 'translate') );
 &addCmdHook('(botmail|message)', ('CODEREF' => 'botmail::parse', 'Identifier' => 'botmail', 'Cmdstats' => 'botmail') );
 &addCmdHook('bzflist17', ('CODEREF' => 'BZFlag::list17', 'Identifier' => 'BZFlag', 'Cmdstats' => 'BZFlag', 'Forker' => 1, 'Module' => 'BZFlag') );
 &addCmdHook('bzflist', ('CODEREF' => 'BZFlag::list', 'Identifier' => 'BZFlag', 'Cmdstats' => 'BZFlag', 'Forker' => 1, 'Module' => 'BZFlag') );
