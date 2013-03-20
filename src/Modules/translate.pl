@@ -3,7 +3,6 @@
 
 package translate;
 use strict;
-use Data::Dumper;
 
 my $no_translate;
 my $url = 'http://translate.google.com/translate_a/t';
@@ -29,7 +28,7 @@ sub translateParam {
 	$ua->agent( "Mozilla/5.0 " . $ua->agent );
 	$ua->timeout(5);
 
-	my $req = HTTP::Request->new('GET', 'http://translate.google.com/translate_a/t?client=t&&sl='.$from.'&tl='.$to.'&text='.$phrase);
+	my $req = HTTP::Request->new('GET', 'http://translate.google.com/translate_a/t?client=t&ie=UTF-8&oe=UTF-8&sl='.$from.'&tl='.$to.'&text='.$phrase);
 
 	$req->header('Accept-Language' => 'en-us');
 	$req->header('Accept-Charset' => 'UTF-8,*');
