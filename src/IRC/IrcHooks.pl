@@ -1339,8 +1339,9 @@ sub on_inviteonly {
     $conn = shift(@_);
     my ($event) = @_;
     my @args = $event->args;
+    my $chan = $args[1];
 
-    &status(">>> inviteonly/$b_cyan$args[1]$ob, removing autojoin");
+    &status(">>> inviteonly/$b_cyan$chan$ob, removing autojoin");
     delete $chanconf{$chan}{autojoin};
     &joinNextChan();
 }
