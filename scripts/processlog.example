@@ -1,0 +1,54 @@
+#!/bin/sh
+
+# copy or link this to processlog to make it run when logs are rotated
+
+if [ -z "$1" ] ; then
+ echo "Syntax: $0 <file>"
+ exit -1
+elif [ ! -r $file ] ; then
+ echo $file does not exist
+ exit -1
+fi
+
+file="`readlink -fm "$1"`"
+irclog2html=`readlink -fm scripts/irclog2html.pl`
+htmlcalidx=`readlink -fm scripts/htmlcalidx.sh`
+# pull date out of path
+date=`echo "${file}"|sed -e 's~.*\([0-9]\{4\}\)/\([0-9]\{4\}\)$~\1\2~'`
+web=$HOME/web
+
+# delete old web pages if present (to allow re-running)
+rm -f $web/$date.html $web/*/$date.html $web/$date.html.gz $web/*/$date.html.gz
+# create new ones
+(cd $web;${irclog2html} ${date} < $file)
+# set the date to the log date
+touch -r $file $web/$date.html $web/*/$date.html
+# compress them
+gzip -f -9 $web/$date.html $web/*/$date.html
+
+#don't run stats if not yesterdays log
+if [ "$date" != "`date -u -d '1 day ago' +'%Y%m%d'`" ] ; then
+ NOSTATS=1
+ NOIDX=1
+fi
+
+# only do stats if NOSTATS not set
+if [ -z "$NOSTATS" ] ; then
+ cd $web/stats
+ [ -r .log ] && rm .log
+ ln -s $file .log
+ nice -n 20 pisg
+ rm .log *gz
+ gzip -9 *html
+fi
+
+if [ -z "$NOSTATS" ] ; then
+ for a in `find $web -type d|sort` ; do
+  (cd $a ; ${htmlcalidx} > HEADER.html)
+ done
+ rm $web/stats/HEADER.html
+fi
+
+if [ -z "$NOCOMPRESS" ] ; then
+ bzip2 -9 $file
+fi
