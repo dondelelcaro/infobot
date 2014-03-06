@@ -221,7 +221,9 @@ sub factoidArgs {
     # the factoid key to reduce repetitive processing.
 
     # it does not matter if it's not alphabetically sorted.
-    foreach ( sort { length($b) <=> length($a) } @list ) {
+    foreach ( (sort { length($b) <=> length($a) } grep {$_ =~ /^\Q$chan \E/} @list),
+              (sort { length($b) <=> length($a) } grep {$_ !~ /^\Q$chan \E/} @list)
+            ) {
         next if (/#DEL#/);    # deleted.
 
         s/^\Q$chan \E//i;
