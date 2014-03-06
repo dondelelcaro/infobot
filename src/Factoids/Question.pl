@@ -103,7 +103,7 @@ sub doQuestion {
     push( @query, $query ) if ( $query ne $x );
 
     if ( &IsChanConf('factoidArguments') > 0 ) {
-        $result = &factoidArgs( $query[0] );
+        $result = &factoidArgs( $query[0] , $chan);
 
         return $result if ( defined $result );
     }
@@ -194,8 +194,10 @@ sub doQuestion {
 }
 
 sub factoidArgs {
-    my ($str) = @_;
+    my ($str,$chan) = @_;
     my $result;
+
+    $chan //= '';
 
     # to make it eleeter, split each arg and use "blah OR blah or BLAH"
     # which will make it less than linear => quicker!
@@ -206,11 +208,14 @@ sub factoidArgs {
     # ignore split to commands [dumb commands vs. factoids] (editing commands?)
     return undef if $str =~ /\s+\=\~\s+s[\#\/\:]/;
     my @list =
+      &searchTable( 'factoids', 'factoid_key', 'factoid_key', "^$chan cmd: $first " );
       &searchTable( 'factoids', 'factoid_key', 'factoid_key', "^cmd: $first " );
+
+    &DEBUG("chan is $chan, first is $first; searching for '^$chan cmd: $first' ");
 
     #    my $delta_time = &timedelta($t);
     #    &DEBUG("factArgs: delta_time = $delta_time s");
-    #    &DEBUG("factArgs: list => ".scalar(@list) );
+    &DEBUG("factArgs: list => ".scalar(@list) );
 
     # from a design perspective, it's better to have the regex in
     # the factoid key to reduce repetitive processing.
