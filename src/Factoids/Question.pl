@@ -224,6 +224,7 @@ sub factoidArgs {
     foreach ( sort { length($b) <=> length($a) } @list ) {
         next if (/#DEL#/);    # deleted.
 
+        s/^\Q$chan \E//i;
         s/^cmd: //i;
 
         #	&DEBUG("factarg: '$str' =~ /^$_\$/");
