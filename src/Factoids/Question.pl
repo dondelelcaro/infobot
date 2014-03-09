@@ -216,7 +216,7 @@ sub factoidArgs {
 
     #    my $delta_time = &timedelta($t);
     #    &DEBUG("factArgs: delta_time = $delta_time s");
-    &DEBUG("factArgs: list[.".scalar(@list))."] => ".join(',',map {qq('$_')} @list) );
+    &DEBUG("factArgs: list[.".scalar(@list)."] => ".join(',',map {qq('$_')} @list);
 
     # from a design perspective, it's better to have the regex in
     # the factoid key to reduce repetitive processing.
