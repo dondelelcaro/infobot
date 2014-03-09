@@ -210,7 +210,7 @@ sub factoidArgs {
     my @list =
         (&searchTable( 'factoids', 'factoid_key', 'factoid_key', "^$chan cmd: $first " ),
          &searchTable( 'factoids', 'factoid_key', 'factoid_key', "^_default cmd: $first " ),
-         &searchTable( 'factoids', 'factoid_key', 'factoid_key', "^cmd: $first " );
+         &searchTable( 'factoids', 'factoid_key', 'factoid_key', "^cmd: $first " ));
 
     &DEBUG("chan is $chan, first is $first; searching for '^$chan cmd: $first' ");
 
