@@ -223,7 +223,7 @@ sub factoidArgs {
 
     # it does not matter if it's not alphabetically sorted.
     foreach ( (sort { length($b) <=> length($a) } grep {$_ =~ /^\Q$chan \E/} @list),
-              (sort { length($b) <=> length($a) } grep {$_ =~ /^\Q_default \E/} @list)
+              (sort { length($b) <=> length($a) } grep {$_ =~ /^\Q_default \E/} @list),
               (sort { length($b) <=> length($a) } grep {$_ !~ /^(\Q$chan\E|default) /} @list)
             ) {
         next if (/#DEL#/);    # deleted.
