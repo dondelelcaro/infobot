@@ -33,7 +33,7 @@ sub DumpNames(\%$) {
 
         foreach $symname ( sort keys %$package ) {
             local *sym = $$package{$symname};
-            next unless ( defined %sym );
+            next unless ( %sym );
             next unless ( $symname =~ /::/ );
             &dumpvarslog("   $symname");
             $countlines++;
@@ -67,7 +67,7 @@ sub DumpNames(\%$) {
     # Lists.
     foreach $symname ( sort keys %$package ) {
         local *sym = $$package{$symname};
-        next unless ( defined @sym );
+        next unless ( @sym );
 
         &dumpvarslog(
             "List '$packname' \@$symname (" . scalar( @{$symname} ) . ")" );
@@ -87,7 +87,7 @@ sub DumpNames(\%$) {
     # Hashes.
     foreach $symname ( sort keys %$package ) {
         local *sym = $$package{$symname};
-        next unless ( defined %sym );
+        next unless ( %sym );
         next if ( $symname =~ /::/ );
 
         &dumpvarslog("Hash '$packname' \%$symname");
@@ -109,7 +109,7 @@ sub DumpNames(\%$) {
 
     foreach $symname ( sort keys %$package ) {
         local *sym = $$package{$symname};
-        next unless ( defined %sym );
+        next unless ( %sym );
         next unless ( $symname =~ /::/ );
         next if ( $symname eq 'main::' );
 

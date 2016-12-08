@@ -51,7 +51,7 @@ sub list {
     $ua->timeout(5);
 
     my $req =
-      HTTP::Request->new( 'GET', 'http://db.bzflag.org/db/?action=LIST' );
+      HTTP::Request->new( 'GET', 'http://my.bzflag.org/db/?action=LIST' );
     my $res = $ua->request($req);
     my %servers;
     my $totalServers = 0;
@@ -60,13 +60,22 @@ sub list {
           split( " ", $line, 5 );
 
         # not "(A4)18" to handle old dumb perl
-        my (
-            $style,          $maxShots,     $shakeWins,    $shakeTimeout,
-            $maxPlayerScore, $maxTeamScore, $maxTime,      $maxPlayers,
-            $rogueSize,      $rogueMax,     $redSize,      $redMax,
-            $greenSize,      $greenMax,     $blueSize,     $blueMax,
-            $purpleSize,     $purpleMax,    $observerSize, $observerMax
-        ) = unpack( 'A4A4A4A4A4A4A4A2A2A2A2A2A2A2A2A2A2A2A2A2', $flags );
+	my ($style, $type, $maxShots, $shakeWins, $shakeTimeout, $maxPlayerScore, $maxTeamScore, $maxTime,
+	    $maxPlayers, $rogueSize, $rogueMax, $redSize, $redMax, $greenSize, $greenMax,
+	    $blueSize, $blueMax, $purpleSize, $purpleMax, $observerSize, $observerMax);
+	if (length($flags) == 54) {
+	  ($style, $maxShots, $shakeWins, $shakeTimeout, $maxPlayerScore, $maxTeamScore, $maxTime,
+	      $maxPlayers, $rogueSize, $rogueMax, $redSize, $redMax, $greenSize, $greenMax,
+	      $blueSize, $blueMax, $purpleSize, $purpleMax, $observerSize, $observerMax) =
+	      unpack("A4A4A4A4A4A4A4A2A2A2A2A2A2A2A2A2A2A2A2A2", $flags);
+	} elsif (length($flags) == 58) {
+	  ($style, $type, $maxShots, $shakeWins, $shakeTimeout, $maxPlayerScore, $maxTeamScore, $maxTime,
+	      $maxPlayers, $rogueSize, $rogueMax, $redSize, $redMax, $greenSize, $greenMax,
+	      $blueSize, $blueMax, $purpleSize, $purpleMax, $observerSize, $observerMax) =
+	      unpack("A4A4A4A4A4A4A4A4A2A2A2A2A2A2A2A2A2A2A2A2A2", $flags);
+	} else {
+	  next;
+	}
         my $playerSize =
           hex($rogueSize) + hex($redSize) + hex($greenSize) + hex($blueSize) +
           hex($purpleSize) + hex($observerSize);

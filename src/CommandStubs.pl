@@ -49,7 +49,7 @@ sub parseCmdHook {
 
     &shmFlush();
 
-    if ( !defined %cmdhooks ) {
+    if ( !%cmdhooks ) {
         &WARN('%cmdhooks does not exist.');
         return 0;
     }
@@ -679,7 +679,7 @@ sub verstats_flush {
 
     return unless ( scalar @vernicktodo );
 
-    $conn->schedule( 3, \&verstats_flush() );
+    $conn->schedule( 3, \&verstats_flush );
 }
 
 sub do_text_counters {
