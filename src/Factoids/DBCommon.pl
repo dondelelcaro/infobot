@@ -23,6 +23,7 @@ sub getFactInfo {
 # Usage: &getFactoid($faqtoid);
 sub getFactoid {
     my $val = getFactInfo( $_[0], 'factoid_value' );
+    DEBUG("getFactoid: $val is_utf8:".is_utf8($val));
     return encode_utf8($val) if is_utf8($val);
     return $val;
 }
