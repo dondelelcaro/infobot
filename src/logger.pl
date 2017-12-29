@@ -171,7 +171,7 @@ sub compress {
 }
 
 sub __output {
-    my ($what,$color,$message) = @_;
+    my ($color,$what,$message) = @_;
     my (undef,undef,$line,$subroutine,undef) = caller(2);
     use String::Escape qw();
     status("$color!$what!$ob ".$subroutine.'['.$line.'] '.String::Escape::backslash($message));
