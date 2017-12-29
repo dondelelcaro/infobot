@@ -12,6 +12,7 @@
 
 # use strict;	# TODO
 use POSIX qw(strftime);
+use Encode qw(encode_utf8 is_utf8);
 
 use vars qw($msgType $uh $lastWho $ident);
 use vars qw(%lang %lastWho);
