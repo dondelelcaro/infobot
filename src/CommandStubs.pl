@@ -49,7 +49,7 @@ sub parseCmdHook {
 
     &shmFlush();
 
-    if ( !defined %cmdhooks ) {
+    if ( !%cmdhooks ) {
         &WARN('%cmdhooks does not exist.');
         return 0;
     }

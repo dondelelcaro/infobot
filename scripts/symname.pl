@@ -96,10 +96,10 @@ sub DumpPackage {
             $scalar++;
             $size += length($sym);
         }
-        elsif ( defined @sym ) {
+        elsif ( @sym ) {
             $size += &DumpArray( $pad + 1, $symname, \@sym );
         }
-        elsif ( defined %sym ) {
+        elsif ( %sym ) {
             $size += &DumpHash( $pad + 1, $symname, \%sym );
         }
         elsif ( ( $symname =~ /::/ ) and ( $symname ne 'main::' ) ) {

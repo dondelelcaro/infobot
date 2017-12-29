@@ -53,7 +53,7 @@ sub vartree {
     # array.
     foreach $symname ( sort keys %$package ) {
         local *sym = $$package{$symname};
-        next unless ( defined @sym );
+        next unless ( @sym );
         print "\@$symname\n";
         &tree( 2, "ARRAY", $symname );
     }
@@ -61,14 +61,14 @@ sub vartree {
     # hash.
     foreach $symname ( sort keys %$package ) {
         local *sym = $$package{$symname};
-        next unless ( defined %sym );
+        next unless ( %sym );
         print "\%$symname\n";
         &tree( 2, "HASH", $symname );
     }
 
     foreach $symname ( sort keys %$package ) {
         local *sym = $$package{$symname};
-        next unless ( defined %sym );
+        next unless ( %sym );
         next unless ( $symname =~ /::/ );
         next if ( $symname eq 'main::' );
 
