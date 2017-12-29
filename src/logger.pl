@@ -174,13 +174,13 @@ sub DEBUG {
     return unless ( &IsParam('DEBUG') );
     my (undef,undef,$line,$subroutine,undef) = caller(1);
 
-    &status("${b_green}!DEBUG!$ob ".$subroutine.'['.$line."] $_[0]");
+    &status("${b_green}!DEBUG!$ob ".$subroutine.'['.$line."] ".quotemeta($_[0]));
 }
 
 sub ERROR {
     my (undef,undef,$line,$subroutine,undef) = caller(1);
 
-    &status("${b_red}!ERROR!$ob ".$subroutine.'['.$line."] $_[0]");
+    &status("${b_red}!ERROR!$ob ".$subroutine.'['.$line."] ".quotemeta($_[0]));
 }
 
 sub WARN {
@@ -190,19 +190,19 @@ sub WARN {
 
     my ($package,$filename,$line,$subroutine,undef) = caller(1);
 
-    &status("${b_yellow}!WARN!$ob ".$subroutine.'['.$line."] $_[0]");
+    &status("${b_yellow}!WARN!$ob ".$subroutine.'['.$line."] ".quotemeta($_[0]));
 }
 
 sub FIXME {
     my ($package,$filename,$line,$subroutine,undef) = caller(1);
 
-    &status("${b_cyan}!FIXME!$ob ".$subroutine.'['.$line."] $_[0]");
+    &status("${b_cyan}!FIXME!$ob ".$subroutine.'['.$line."] ".quotemeta($_[0]));
 }
 
 sub TODO {
     my ($package,$filename,$line,$subroutine,undef) = caller(1);
 
-    &status("${b_cyan}!TODO!$ob ".$subroutine.'['.$line."] $_[0]");
+    &status("${b_cyan}!TODO!$ob ".$subroutine.'['.$line."] ".quotemeta($_[0]));
 }
 
 sub VERB {
