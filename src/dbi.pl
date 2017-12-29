@@ -74,6 +74,7 @@ eval {
 sub sqlOpenDB {
     my ( $db, $type, $user, $pass, $no_fail ) = @_;
 
+    my $attr = {};
     # this is a mess. someone fix it, please.
     if ( $type =~ /^SQLite(2)?$/i ) {
         $db = "dbname=$db.sqlite";
@@ -81,6 +82,9 @@ sub sqlOpenDB {
     elsif ( $type =~ /^pg/i ) {
         $db   = "dbname=$db";
         $type = 'Pg';
+    }
+    elsif ($type =~ /mysql/) {
+        $attr->{mysql_enable_utf8mb4} = 1;
     }
 
     my $dsn     = "DBI:$type:$db";
@@ -100,7 +104,7 @@ sub sqlOpenDB {
     }
 
     # SQLite ignores $user and $pass
-    $dbh = Bloot::DBI->new( DBI->connect( $dsn, $user, $pass ) );
+    $dbh = Bloot::DBI->new( DBI->connect( $dsn, $user, $pass, $attr ) );
 
     if ( $dbh && !$dbh->err ) {
         &status("Opened $type connection$hoststr");
