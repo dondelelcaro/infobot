@@ -57,6 +57,7 @@ sub getReply {
         );
         last if ($result);
     }
+    $result = encode_utf8($result) if is_utf8($result);
 
     if ($result) {
         $lhs = $message;
