@@ -170,39 +170,34 @@ sub compress {
     return 1;
 }
 
+sub __output {
+    my ($what,$color,$message) = @_;
+    my (undef,undef,$line,$subroutine,undef) = caller(2);
+    use String::Escape qw();
+    status("$color!$what!$ob ".$subroutine.'['.$line.'] '.String::Escape::backslash($message));
+}
+
 sub DEBUG {
     return unless ( &IsParam('DEBUG') );
-    my (undef,undef,$line,$subroutine,undef) = caller(1);
-
-    &status("${b_green}!DEBUG!$ob ".$subroutine.'['.$line."] ".quotemeta($_[0]));
+    __output($b_green,'DEBUG',$_[0]);
 }
 
 sub ERROR {
-    my (undef,undef,$line,$subroutine,undef) = caller(1);
-
-    &status("${b_red}!ERROR!$ob ".$subroutine.'['.$line."] ".quotemeta($_[0]));
+    __output($b_red,'ERROR',$_[0]);
 }
 
 sub WARN {
     return unless ( &IsParam('WARN') );
-
     return if ( $_[0] =~ /^PERL: Subroutine \S+ redefined at/ );
-
-    my ($package,$filename,$line,$subroutine,undef) = caller(1);
-
-    &status("${b_yellow}!WARN!$ob ".$subroutine.'['.$line."] ".quotemeta($_[0]));
+    __output($b_yellow,'WARN',$_[0]);
 }
 
 sub FIXME {
-    my ($package,$filename,$line,$subroutine,undef) = caller(1);
-
-    &status("${b_cyan}!FIXME!$ob ".$subroutine.'['.$line."] ".quotemeta($_[0]));
+    __output($b_cyan,'FIXME',$_[0]);
 }
 
 sub TODO {
-    my ($package,$filename,$line,$subroutine,undef) = caller(1);
-
-    &status("${b_cyan}!TODO!$ob ".$subroutine.'['.$line."] ".quotemeta($_[0]));
+    __output($b_cyan,'TODO',$_[0]);
 }
 
 sub VERB {
